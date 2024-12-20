@@ -1,0 +1,258 @@
+{
+  "preamble": {
+    "title": "golddydev/aiken-handles-marketplace-sc",
+    "description": "Aiken contracts for project 'golddydev/aiken-handles-marketplace-sc'",
+    "version": "0.0.0",
+    "plutusVersion": "v3",
+    "compiler": {
+      "name": "Aiken",
+      "version": "v1.1.7+e2fb28b"
+    },
+    "license": "Apache-2.0"
+  },
+  "validators": [
+    {
+      "title": "marketplace.marketplace.spend",
+      "datum": {
+        "title": "datum_opt",
+        "schema": {
+          "$ref": "#/definitions/marketplace~1types~1Datum"
+        }
+      },
+      "redeemer": {
+        "title": "redeemer",
+        "schema": {
+          "$ref": "#/definitions/marketplace~1Redeemer"
+        }
+      },
+      "compiledCode": "5904970101003232323232323225333002323232323253330073370e900118041baa0011323322323232533300d3003001132325333012301500200416375a6026002601e6ea802054ccc034cdc3a40040022a666020601e6ea80200085858c034dd500389919192999807180218079baa00513232533301030063011375401626464646464646464a666030646600200297ae111e581c15df89fe62968415bac4de9d8576da39c34db4717f46332572aca3eb00811e581c53391ebae9fa352a1108e2769df9baf0d3efcab0f49404bd6ac56bd40011299980e8008a5013322533301c3300d00f00214a22660080080026eb8c07c004c0800044c010ccc00401801c0204cc88c8c8c8c8c8c94ccc08cc0980084c8c8c94ccc098c0a40084c8c94ccc09402454ccc09402054ccc09400440085280a5014a066e2402cdd6981300118080018b18138009bab3023002375c60420022c60480026eacc08c00ccdd7981100199180099811181198101baa3001330223001330224c11e581c84cc25ea4c29951d40b443b95bbc5676bc425470f96376d1984af9ab004bd7019811260103d87a80004bd70198111800998111800998111800998112611e581c2c967f4bd28944b06462e13c5e3f5d5fa6e03f8567569438cd833e6d004bd7025eb812f5c097ae0374a900019baf3021302200100c3021001301c3754004603a00c66e0ccdc199b82333001301e0060074c103d879800048191206248190888c8c8c8c8c94ccc07ccdd7981218128018030991919299981119baf30270020051325333026302900513232325333029302c002132533302730140041533302753330273371200c0022602600c29404cdc000329998150040a400026602201a0102c2c6eb4c0a000458c0a8004dd598130011bae302400116302700416375a604c604e00260446ea8c094020c09401c58dd5981180118110011811000980e9baa3020004302000330010012223232323232533301d3375e60446046006980103d8798000132323253330203375e604a00400a264a666048604e00a2646464a66604e6054004264a66604a60240082a66604aa66604a66e240180044c044018528099b8000653330280081480004ccc0400400340205858dd698130008b18140009bab3024002375c60440022c604a0082c6eb4c090c094004c080dd5181180398118030b1bab302100230200023020001301b3754603c006603c0046e212000371e91100333232323001001222533301733712900a0008999801801980e980e980e980e980e980e980e980e980e980e80119b800014804c4cc010008004c0040048894ccc054c02c00440084ccc00c00cc06c008cdc0000a400200c6eb4c05cc050dd50069bac30163013375400666e9520043301437526e50dd980425eb804cc00400cdd7180a980b18091baa00222323300100100322533301600114a026644a66602a66e3c0080145288998020020009bae3018001301900130133010375400a2c6eb0c048c04cc04cc04cc04cc04cc04c008dd618088009808980898069baa007370e900018068009806980700098049baa00116300b300c003300a002300900230090013004375400229309b2b2b9a5573aaae7955cfaba05742ae881",
+      "hash": "1c631f609892d09c0f1db8989a938c892a87360cbf08959a7b5cb281"
+    },
+    {
+      "title": "marketplace.marketplace.else",
+      "redeemer": {
+        "schema": {}
+      },
+      "compiledCode": "5904970101003232323232323225333002323232323253330073370e900118041baa0011323322323232533300d3003001132325333012301500200416375a6026002601e6ea802054ccc034cdc3a40040022a666020601e6ea80200085858c034dd500389919192999807180218079baa00513232533301030063011375401626464646464646464a666030646600200297ae111e581c15df89fe62968415bac4de9d8576da39c34db4717f46332572aca3eb00811e581c53391ebae9fa352a1108e2769df9baf0d3efcab0f49404bd6ac56bd40011299980e8008a5013322533301c3300d00f00214a22660080080026eb8c07c004c0800044c010ccc00401801c0204cc88c8c8c8c8c8c94ccc08cc0980084c8c8c94ccc098c0a40084c8c94ccc09402454ccc09402054ccc09400440085280a5014a066e2402cdd6981300118080018b18138009bab3023002375c60420022c60480026eacc08c00ccdd7981100199180099811181198101baa3001330223001330224c11e581c84cc25ea4c29951d40b443b95bbc5676bc425470f96376d1984af9ab004bd7019811260103d87a80004bd70198111800998111800998111800998112611e581c2c967f4bd28944b06462e13c5e3f5d5fa6e03f8567569438cd833e6d004bd7025eb812f5c097ae0374a900019baf3021302200100c3021001301c3754004603a00c66e0ccdc199b82333001301e0060074c103d879800048191206248190888c8c8c8c8c94ccc07ccdd7981218128018030991919299981119baf30270020051325333026302900513232325333029302c002132533302730140041533302753330273371200c0022602600c29404cdc000329998150040a400026602201a0102c2c6eb4c0a000458c0a8004dd598130011bae302400116302700416375a604c604e00260446ea8c094020c09401c58dd5981180118110011811000980e9baa3020004302000330010012223232323232533301d3375e60446046006980103d8798000132323253330203375e604a00400a264a666048604e00a2646464a66604e6054004264a66604a60240082a66604aa66604a66e240180044c044018528099b8000653330280081480004ccc0400400340205858dd698130008b18140009bab3024002375c60440022c604a0082c6eb4c090c094004c080dd5181180398118030b1bab302100230200023020001301b3754603c006603c0046e212000371e91100333232323001001222533301733712900a0008999801801980e980e980e980e980e980e980e980e980e980e80119b800014804c4cc010008004c0040048894ccc054c02c00440084ccc00c00cc06c008cdc0000a400200c6eb4c05cc050dd50069bac30163013375400666e9520043301437526e50dd980425eb804cc00400cdd7180a980b18091baa00222323300100100322533301600114a026644a66602a66e3c0080145288998020020009bae3018001301900130133010375400a2c6eb0c048c04cc04cc04cc04cc04cc04c008dd618088009808980898069baa007370e900018068009806980700098049baa00116300b300c003300a002300900230090013004375400229309b2b2b9a5573aaae7955cfaba05742ae881",
+      "hash": "1c631f609892d09c0f1db8989a938c892a87360cbf08959a7b5cb281"
+    }
+  ],
+  "definitions": {
+    "Int": {
+      "dataType": "integer"
+    },
+    "List$marketplace/types/Payout": {
+      "dataType": "list",
+      "items": {
+        "$ref": "#/definitions/marketplace~1types~1Payout"
+      }
+    },
+    "Option$StakeCredential": {
+      "title": "Option",
+      "anyOf": [
+        {
+          "title": "Some",
+          "description": "An optional value.",
+          "dataType": "constructor",
+          "index": 0,
+          "fields": [
+            {
+              "$ref": "#/definitions/StakeCredential"
+            }
+          ]
+        },
+        {
+          "title": "None",
+          "description": "Nothing.",
+          "dataType": "constructor",
+          "index": 1,
+          "fields": []
+        }
+      ]
+    },
+    "PaymentCredential": {
+      "title": "PaymentCredential",
+      "description": "A general structure for representing an on-chain `Credential`.\n\n Credentials are always one of two kinds: a direct public/private key\n pair, or a script (native or Plutus).",
+      "anyOf": [
+        {
+          "title": "VerificationKey",
+          "dataType": "constructor",
+          "index": 0,
+          "fields": [
+            {
+              "$ref": "#/definitions/VerificationKeyHash"
+            }
+          ]
+        },
+        {
+          "title": "Script",
+          "dataType": "constructor",
+          "index": 1,
+          "fields": [
+            {
+              "$ref": "#/definitions/ScriptHash"
+            }
+          ]
+        }
+      ]
+    },
+    "ScriptHash": {
+      "title": "ScriptHash",
+      "dataType": "bytes"
+    },
+    "StakeCredential": {
+      "title": "StakeCredential",
+      "description": "Represent a type of object that can be represented either inline (by hash)\n or via a reference (i.e. a pointer to an on-chain location).\n\n This is mainly use for capturing pointers to a stake credential\n registration certificate in the case of so-called pointer addresses.",
+      "anyOf": [
+        {
+          "title": "Inline",
+          "dataType": "constructor",
+          "index": 0,
+          "fields": [
+            {
+              "$ref": "#/definitions/cardano~1address~1Credential"
+            }
+          ]
+        },
+        {
+          "title": "Pointer",
+          "dataType": "constructor",
+          "index": 1,
+          "fields": [
+            {
+              "title": "slot_number",
+              "$ref": "#/definitions/Int"
+            },
+            {
+              "title": "transaction_index",
+              "$ref": "#/definitions/Int"
+            },
+            {
+              "title": "certificate_index",
+              "$ref": "#/definitions/Int"
+            }
+          ]
+        }
+      ]
+    },
+    "VerificationKeyHash": {
+      "title": "VerificationKeyHash",
+      "dataType": "bytes"
+    },
+    "cardano/address/Address": {
+      "title": "Address",
+      "description": "A Cardano `Address` typically holding one or two credential references.\n\n Note that legacy bootstrap addresses (a.k.a. 'Byron addresses') are\n completely excluded from Plutus contexts. Thus, from an on-chain\n perspective only exists addresses of type 00, 01, ..., 07 as detailed\n in [CIP-0019 :: Shelley Addresses](https://github.com/cardano-foundation/CIPs/tree/master/CIP-0019/#shelley-addresses).",
+      "anyOf": [
+        {
+          "title": "Address",
+          "dataType": "constructor",
+          "index": 0,
+          "fields": [
+            {
+              "title": "payment_credential",
+              "$ref": "#/definitions/PaymentCredential"
+            },
+            {
+              "title": "stake_credential",
+              "$ref": "#/definitions/Option$StakeCredential"
+            }
+          ]
+        }
+      ]
+    },
+    "cardano/address/Credential": {
+      "title": "Credential",
+      "description": "A general structure for representing an on-chain `Credential`.\n\n Credentials are always one of two kinds: a direct public/private key\n pair, or a script (native or Plutus).",
+      "anyOf": [
+        {
+          "title": "VerificationKey",
+          "dataType": "constructor",
+          "index": 0,
+          "fields": [
+            {
+              "$ref": "#/definitions/VerificationKeyHash"
+            }
+          ]
+        },
+        {
+          "title": "Script",
+          "dataType": "constructor",
+          "index": 1,
+          "fields": [
+            {
+              "$ref": "#/definitions/ScriptHash"
+            }
+          ]
+        }
+      ]
+    },
+    "marketplace/Redeemer": {
+      "title": "Redeemer",
+      "description": "A user can either buy a token\n or cancel/update the listing.",
+      "anyOf": [
+        {
+          "title": "Buy",
+          "description": "`payout_outputs_offset` tells us where\n the outputs containing the payouts start.",
+          "dataType": "constructor",
+          "index": 0,
+          "fields": [
+            {
+              "title": "payout_outputs_offset",
+              "$ref": "#/definitions/Int"
+            }
+          ]
+        },
+        {
+          "title": "WithdrawOrUpdate",
+          "description": "Cancel or update a listing.",
+          "dataType": "constructor",
+          "index": 1,
+          "fields": []
+        }
+      ]
+    },
+    "marketplace/types/Datum": {
+      "title": "Datum",
+      "description": "A listing requires a datum that has\n the owner's payment key and a list of payouts.\n We do not need to specify the marketplace payout\n in `payouts` even though it will be in\n one of the outputs.",
+      "anyOf": [
+        {
+          "title": "Datum",
+          "dataType": "constructor",
+          "index": 0,
+          "fields": [
+            {
+              "title": "payouts",
+              "description": "Does not contain the marketplace payout.\n This is usually royalty and seller payouts.",
+              "$ref": "#/definitions/List$marketplace~1types~1Payout"
+            },
+            {
+              "title": "owner",
+              "description": "Flexible to allow discounts\n The key that listed the NFT",
+              "$ref": "#/definitions/VerificationKeyHash"
+            }
+          ]
+        }
+      ]
+    },
+    "marketplace/types/Payout": {
+      "title": "Payout",
+      "anyOf": [
+        {
+          "title": "Payout",
+          "dataType": "constructor",
+          "index": 0,
+          "fields": [
+            {
+              "title": "address",
+              "$ref": "#/definitions/cardano~1address~1Address"
+            },
+            {
+              "title": "amount_lovelace",
+              "$ref": "#/definitions/Int"
+            }
+          ]
+        }
+      ]
+    }
+  }
+}
