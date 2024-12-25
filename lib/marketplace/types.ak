@@ -11,7 +11,7 @@ pub type Payout {
 /// We do not need to specify the marketplace payout
 /// in `payouts` even though it will be in
 /// one of the outputs.
-pub type Datum {
+pub type MarketplaceDatum {
   /// Does not contain the marketplace payout.
   /// This is usually royalty and seller payouts.
   payouts: List<Payout>,

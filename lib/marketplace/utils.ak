@@ -1,7 +1,9 @@
 use aiken/builtin.{tail_list}
 use aiken/collection/dict
+use aiken/primitive/string
 use cardano/assets.{ada_policy_id}
 use cardano/transaction.{Datum, NoDatum, Output}
+use common/utils.{trace_if_false}
 use marketplace/constants.{marketplace_addr}
 use marketplace/types.{Payout}
 
@@ -56,7 +58,7 @@ fn skip_10_items(some_list: List<a>) -> List<a> {
 }
 
 /// This function is used only if a discount
-/// is not allowed (tx not signed by koralabs). The main difference
+/// is not allowed (tx not signed by Koralabs). The main difference
 /// from `check_payouts` is that we make sure the
 /// output address matches a hardcoded marketplace address
 /// along with confirming that the output value equals
@@ -74,12 +76,21 @@ pub fn check_marketplace_payout(
   // Match hardcoded marketplace address
   let address_check = output_address == marketplace_addr()
 
-  expect [Pair(policy, tokens)] =
-    value
-      |> assets.to_dict
-      |> dict.to_pairs
-
-  expect [Pair(_, quantity)] = dict.to_pairs(tokens)
+  // must have only Ada for `marketplace_fee`
+  let Pair(policy, tokens) =
+    when
+      value
+        |> assets.to_dict
+        |> dict.to_pairs
+    is {
+      [tokens_pair] -> tokens_pair
+      _ -> fail @"You have to pay marketplace fee using only Ada."
+    }
+  let Pair(_, quantity) =
+    when tokens |> dict.to_pairs is {
+      [asset_pair] -> asset_pair
+      _ -> fail @"You have to pay marketplace fee using only Lovelace."
+    }
 
   let policy_check = policy == ada_policy_id
 
@@ -88,7 +99,21 @@ pub fn check_marketplace_payout(
   // transactions not constructed by Koralabs.
   let quantity_check = quantity >= marketplace_fee
 
-  datum_check && address_check && quantity_check && policy_check
+  and {
+    trace_if_false(
+      datum_check,
+      @"Datum Tag is not correct on marketplace fee output.",
+    ),
+    trace_if_false(address_check, @"Marketplace Fee address doesn't match."),
+    trace_if_false(policy_check, @"Marketplace Fee token's Policy is not Ada."),
+    trace_if_false(
+      quantity_check,
+      string.concat(
+        @"You must pay in Ada at least ",
+        string.from_int(marketplace_fee),
+      ),
+    ),
+  }
 }
 
 /// Check that payouts and payout outputs
