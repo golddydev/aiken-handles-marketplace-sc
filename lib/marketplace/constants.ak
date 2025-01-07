@@ -1,11 +1,14 @@
 use aiken/crypto.{VerificationKeyHash}
 use cardano/address.{Address, from_verification_key, with_delegation_key}
 
+// marketplace address (bech32 format) is
+// addr_test1qpzxs06vn7qagrqsm7wtquul8s5drxzk82wwr9qx3886m8lv7yv3mukuwdkne3v3va8dgd3xjkzqv90pu9gsc8hrl2xs9yqkej 
+
 pub const marketplace_addr_payment_cred_verification_key_hash: VerificationKeyHash =
-  #"84cc25ea4c29951d40b443b95bbc5676bc425470f96376d1984af9ab"
+  #"44683f4c9f81d40c10df9cb0739f3c28d198563a9ce1940689cfad9f"
 
 pub const marketplace_addr_stake_cred_verification_key_hash: VerificationKeyHash =
-  #"2c967f4bd28944b06462e13c5e3f5d5fa6e03f8567569438cd833e6d"
+  #"ecf1191df2dc736d3cc591674ed4362695840615e1e1510c1ee3fa8d"
 
 pub fn marketplace_addr() -> Address {
   from_verification_key(marketplace_addr_payment_cred_verification_key_hash)
@@ -13,8 +16,5 @@ pub fn marketplace_addr() -> Address {
 }
 
 pub fn authorizers() -> List<VerificationKeyHash> {
-  [
-    #"15df89fe62968415bac4de9d8576da39c34db4717f46332572aca3eb",
-    #"53391ebae9fa352a1108e2769df9baf0d3efcab0f49404bd6ac56bd4",
-  ]
+  [#"0c0647ff15d2df88897eb2471d9aba909cdcc842ad7c387ec0712725"]
 }

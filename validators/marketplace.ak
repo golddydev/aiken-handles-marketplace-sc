@@ -1,8 +1,10 @@
 use aiken/cbor.{serialise}
 use aiken/collection/list
 use aiken/crypto.{blake2b_256}
-use cardano/transaction.{InlineDatum, NoDatum, OutputReference, Transaction}
-use marketplace/constants
+use cardano/transaction.{
+  InlineDatum, NoDatum, Output, OutputReference, Transaction,
+}
+use marketplace/constants.{authorizers}
 use marketplace/types.{Datum}
 use marketplace/utils.{
   check_marketplace_payout, check_payouts, find_payout_outputs,
@@ -42,12 +44,13 @@ validator marketplace {
         let Datum { payouts, .. } = datum
 
         // Find the `outputs` that correspond to `payouts`.
-        let payout_outputs = find_payout_outputs(outputs, payout_outputs_offset)
+        let payout_outputs: List<Output> =
+          find_payout_outputs(outputs, payout_outputs_offset)
 
         // We can ignore the fee check
         // if any of the authorizers have signed the tx.
         let can_have_discount =
-          constants.authorizers()
+          authorizers()
             |> list.any(fn(authorizer) { list.has(extra_signatories, authorizer) })
 
         // If `can_have_discount` is `True` then we can

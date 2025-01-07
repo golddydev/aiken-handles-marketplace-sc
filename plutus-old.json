@@ -1,0 +1,219 @@
+{
+  "preamble": {
+    "title": "golddyev/marketplace-sc-old",
+    "description": "Aiken contracts for project 'golddyev/marketplace-sc-old'",
+    "version": "0.0.0",
+    "plutusVersion": "v2",
+    "compiler": {
+      "name": "Aiken",
+      "version": "v1.0.29-alpha+16fb02e"
+    },
+    "license": "Apache-2.0"
+  },
+  "validators": [
+    {
+      "title": "marketplace.spend",
+      "datum": {
+        "title": "datum",
+        "schema": {
+          "$ref": "#/definitions/marketplace~1Datum"
+        }
+      },
+      "redeemer": {
+        "title": "redeemer",
+        "schema": {
+          "$ref": "#/definitions/marketplace~1Redeemer"
+        }
+      },
+      "compiledCode": "59059901000032323232323232232323223225333008323232323232533300e300c300f3754012264a66601e601860206ea80184c8c8c8c8c8c8c8c94ccc05cc8cc0040052f5c31e581c0c0647ff15d2df88897eb2471d9aba909cdcc842ad7c387ec07127250011299980e0008a50132533301a3300d00e375c603e00429444cc00c00c004c07c0044c010ccc00401801c0204cc88c8c8c8c8c8c94ccc088c0940084c8c8c94ccc094c0a00084c8c94ccc09002454ccc09002054ccc09000440085280a5014a066e2402cdd6981280118080018b18130009bab3022002375c60400022c60460026eacc08800ccdd79810801a6150d8799fd8799f581c44683f4c9f81d40c10df9cb0739f3c28d198563a9ce1940689cfad9fffd8799fd8799fd8799f581cecf1191df2dc736d3cc591674ed4362695840615e1e1510c1ee3fa8dffffffff003375e60406042002018604000260366ea8008c070018cdc199b8333704666002603a00c00e980103d879800048191206248190888c8c8c8c8c94ccc078cdd7981198120010030991919299981099baf30260020061325333025302800513232325333028302b002132533302630140041533302653330263371200c0022602600c29404cdc000329998148040a400026602201a0102c2c6eb4c09c00458c0a4004dd598128011bae302300116302600416375a604a604c00260426ea8c090020c09001c58dd5981100098110011810000980e1baa301f004301f00330010012223232323232533301c3375e60426044004980103d87980001323232533301f3375e604800400c264a666046604c00a2646464a66604c6052004264a66604860240082a666048a66604866e240180044c044018528099b8000653330270081480004ccc0400400340205858dd698128008b18138009bab3023002375c60420022c60480082c6eb4c08cc090004c07cdd5181100398110030b1bab30200013020002301e001301a3754603a006603a0046e212000371e91100333232323001001222533301633712900a0008999801801980e180e180e180e180e180e180e180e180e180e00119b800014804c4cc010008004c0040048894ccc050c04800440084ccc00c00cc068008cdc0000a400200c0066eb0c054c048dd500799ba548010cc04cdd49b943766602860226ea80192f5c02c6eb4c04cc040dd50048998008011bae301330143010375401a44646600200200644a66602800229404c94ccc048cdc79bae301700200414a2266006006002602e0026eb0c044c048c048c048c048c048c048008dd618080009808180818061baa300f002300e300f001300a375400229309b2b192999803980280089919299980618078010a4c2c6eb4c034004c024dd50010a99980398020008a99980518049baa00214985858c01cdd5000992999802980198031baa004132323232533300c300f002132498c8cc004004010894ccc03800452613233003003301200232533300c300a300d3754002264646464a666026602c004264932999808180718089baa0031323232325333017301a00213232498c94ccc058c0500044c8c94ccc06cc0780084c926325333019301700113232533301e3021002132498c05c00458c07c004c06cdd50010a99980c980b0008991919191919299981118128010a4c2c6eb4c08c004c08c008dd6981080098108011bad301f001301b37540042c60326ea800458c070004c060dd50018a99980b18098008a99980c980c1baa00314985858c058dd500118080018b180c000980c001180b00098091baa0031616375a602800260280046024002601c6ea800458c04000458dd7180680098068011bac300b001300737540082c464a66600c600800226464a666016601c0042930b1bae300c001300837540042a66600c600600226464a666016601c0042930b1bae300c001300837540042c600c6ea8004dc3a40046e1d20005734aae7555cf2ab9f5740ae855d11",
+      "hash": "dd2ee59b9be9b8dc2b3ac9e8ab5bf07cda710fda8cb5c09807902316"
+    }
+  ],
+  "definitions": {
+    "ByteArray": {
+      "dataType": "bytes"
+    },
+    "Int": {
+      "dataType": "integer"
+    },
+    "List$marketplace/types/Payout": {
+      "dataType": "list",
+      "items": {
+        "$ref": "#/definitions/marketplace~1types~1Payout"
+      }
+    },
+    "Option$aiken/transaction/credential/Referenced$aiken/transaction/credential/Credential": {
+      "title": "Optional",
+      "anyOf": [
+        {
+          "title": "Some",
+          "description": "An optional value.",
+          "dataType": "constructor",
+          "index": 0,
+          "fields": [
+            {
+              "$ref": "#/definitions/aiken~1transaction~1credential~1Referenced$aiken~1transaction~1credential~1Credential"
+            }
+          ]
+        },
+        {
+          "title": "None",
+          "description": "Nothing.",
+          "dataType": "constructor",
+          "index": 1,
+          "fields": []
+        }
+      ]
+    },
+    "aiken/transaction/credential/Address": {
+      "title": "Address",
+      "description": "A Cardano `Address` typically holding one or two credential references.\n\n Note that legacy bootstrap addresses (a.k.a. 'Byron addresses') are\n completely excluded from Plutus contexts. Thus, from an on-chain\n perspective only exists addresses of type 00, 01, ..., 07 as detailed\n in [CIP-0019 :: Shelley Addresses](https://github.com/cardano-foundation/CIPs/tree/master/CIP-0019/#shelley-addresses).",
+      "anyOf": [
+        {
+          "title": "Address",
+          "dataType": "constructor",
+          "index": 0,
+          "fields": [
+            {
+              "title": "payment_credential",
+              "$ref": "#/definitions/aiken~1transaction~1credential~1Credential"
+            },
+            {
+              "title": "stake_credential",
+              "$ref": "#/definitions/Option$aiken~1transaction~1credential~1Referenced$aiken~1transaction~1credential~1Credential"
+            }
+          ]
+        }
+      ]
+    },
+    "aiken/transaction/credential/Credential": {
+      "title": "Credential",
+      "description": "A general structure for representing an on-chain `Credential`.\n\n Credentials are always one of two kinds: a direct public/private key\n pair, or a script (native or Plutus).",
+      "anyOf": [
+        {
+          "title": "VerificationKeyCredential",
+          "dataType": "constructor",
+          "index": 0,
+          "fields": [
+            {
+              "$ref": "#/definitions/ByteArray"
+            }
+          ]
+        },
+        {
+          "title": "ScriptCredential",
+          "dataType": "constructor",
+          "index": 1,
+          "fields": [
+            {
+              "$ref": "#/definitions/ByteArray"
+            }
+          ]
+        }
+      ]
+    },
+    "aiken/transaction/credential/Referenced$aiken/transaction/credential/Credential": {
+      "title": "Referenced",
+      "description": "Represent a type of object that can be represented either inline (by hash)\n or via a reference (i.e. a pointer to an on-chain location).\n\n This is mainly use for capturing pointers to a stake credential\n registration certificate in the case of so-called pointer addresses.",
+      "anyOf": [
+        {
+          "title": "Inline",
+          "dataType": "constructor",
+          "index": 0,
+          "fields": [
+            {
+              "$ref": "#/definitions/aiken~1transaction~1credential~1Credential"
+            }
+          ]
+        },
+        {
+          "title": "Pointer",
+          "dataType": "constructor",
+          "index": 1,
+          "fields": [
+            {
+              "title": "slot_number",
+              "$ref": "#/definitions/Int"
+            },
+            {
+              "title": "transaction_index",
+              "$ref": "#/definitions/Int"
+            },
+            {
+              "title": "certificate_index",
+              "$ref": "#/definitions/Int"
+            }
+          ]
+        }
+      ]
+    },
+    "marketplace/Datum": {
+      "title": "Datum",
+      "description": "A listing requires a datum that has\n the owner's payment key and a list of payouts.\n We do not need to specify the marketplace payout\n in `payouts` even though it will be in\n one of the outputs.",
+      "anyOf": [
+        {
+          "title": "Datum",
+          "dataType": "constructor",
+          "index": 0,
+          "fields": [
+            {
+              "title": "payouts",
+              "description": "Does not contain the marketplace payout.\n This is usually royalty and seller payouts.",
+              "$ref": "#/definitions/List$marketplace~1types~1Payout"
+            },
+            {
+              "title": "owner",
+              "description": "Flexible to allow discounts\n The key that listed the NFT",
+              "$ref": "#/definitions/ByteArray"
+            }
+          ]
+        }
+      ]
+    },
+    "marketplace/Redeemer": {
+      "title": "Redeemer",
+      "description": "A user can either buy a token\n or cancel/update the listing.",
+      "anyOf": [
+        {
+          "title": "Buy",
+          "description": "`payout_outputs_offset` tells us where\n the outputs containing the payouts start.",
+          "dataType": "constructor",
+          "index": 0,
+          "fields": [
+            {
+              "title": "payout_outputs_offset",
+              "$ref": "#/definitions/Int"
+            }
+          ]
+        },
+        {
+          "title": "WithdrawOrUpdate",
+          "description": "Cancel or update a listing.",
+          "dataType": "constructor",
+          "index": 1,
+          "fields": []
+        }
+      ]
+    },
+    "marketplace/types/Payout": {
+      "title": "Payout",
+      "anyOf": [
+        {
+          "title": "Payout",
+          "dataType": "constructor",
+          "index": 0,
+          "fields": [
+            {
+              "title": "address",
+              "$ref": "#/definitions/aiken~1transaction~1credential~1Address"
+            },
+            {
+              "title": "amount_lovelace",
+              "$ref": "#/definitions/Int"
+            }
+          ]
+        }
+      ]
+    }
+  }
+}
