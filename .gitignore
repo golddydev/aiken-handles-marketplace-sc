@@ -63,3 +63,6 @@ docs/
 
 # env files
 .env*.local
+
+# plutus.json
+plutus.json

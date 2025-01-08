@@ -1,38 +1,44 @@
+import { bytesToHex } from "@helios-lang/codec-utils";
+import {
+  hashNativeScript,
+  makeAddress,
+  makeAfterScript,
+  makeAllScript,
+  makeAssets,
+  makeNetworkParamsHelper,
+  makePubKeyHash,
+  makeSigScript,
+  makeTxOutput,
+  makeTxOutputId,
+  makeValue,
+} from "@helios-lang/ledger";
 import {
   makeBlockfrostV0Client,
-  makeEmulator,
   makeSimpleWallet,
   makeTxBuilder,
   NetworkName,
   restoreRootPrivateKey,
 } from "@helios-lang/tx-utils";
-import { Err, Ok, Result } from "ts-res";
-import { AssetNameLabel, IS_PRODUCTION } from "@koralabs/kora-labs-common";
+import { decodeUplcProgramV2FromCbor } from "@helios-lang/uplc";
 import {
-  hashNativeScript,
-  makeAddress,
-  makeAssets,
-  makeBeforeScript,
-  makeNetworkParamsHelper,
-  makePubKeyHash,
-  makeTxOutput,
-  makeValue,
-} from "@helios-lang/ledger";
+  AssetNameLabel,
+  IS_PRODUCTION,
+  ScriptDetails,
+  ScriptType,
+} from "@koralabs/kora-labs-common";
+import fs from "fs/promises";
+import { mayFailAsync } from "helpers/index.js";
+import { Err, Ok, Result } from "ts-res";
 
-import { BuildTxError } from "./types.js";
 import {
   AUTHORIZERS,
   HANDLE_POLICY_ID,
   MARKETPLACE_ADDRESS,
 } from "./constants/index.js";
+import { optimizedCompiledCode } from "./contracts/plutus-v2/contract.js";
 import { buildDatumForSCParameters } from "./datum.js";
-import { decodeUplcProgramV2FromCbor } from "@helios-lang/uplc";
-
-import { fetchNetworkParameter } from "./utils/index.js";
-import blueprints from "../plutus-old.json" assert { type: "json" };
-import { bytesToHex } from "@helios-lang/codec-utils";
-
-makeEmulator()
+import { BuildTxError } from "./types.js";
+import { fetchNetworkParameter, sleep } from "./utils/index.js";
 
 /**
  * Configuration of function to deploy marketplace smart contract
@@ -59,6 +65,8 @@ const deploy = async (
   network: NetworkName,
   blockfrostApiKey: string
 ): Promise<Result<void, Error | BuildTxError>> => {
+  console.log(`Deploying to ${network} network...`);
+
   const { handleName, seed } = config;
   const txBuilder = makeTxBuilder({ isMainnet: IS_PRODUCTION });
   const networkParamsResult = await fetchNetworkParameter(network);
@@ -75,14 +83,16 @@ const deploy = async (
   const spareUtxos = await wallet.utxos;
   const changeAddress = wallet.address.toBech32();
 
-  const compiledCode = blueprints.validators[0].compiledCode;
-  const uplcProgram = decodeUplcProgramV2FromCbor(compiledCode);
+  const uplcProgram = decodeUplcProgramV2FromCbor(optimizedCompiledCode);
 
-  const failScriptAddress = makeAddress(
+  const lockerScriptAddress = makeAddress(
     network == "mainnet",
     makePubKeyHash(
       hashNativeScript(
-        makeBeforeScript(networkParameterHelper.timeToSlot(Date.now()))
+        makeAllScript([
+          makeAfterScript(networkParameterHelper.timeToSlot(Date.now())),
+          makeSigScript(wallet.spendingPubKeyHash),
+        ])
       )
     )
   );
@@ -103,7 +113,7 @@ const deploy = async (
     ])
   );
   const deployedTxOutput = makeTxOutput(
-    failScriptAddress,
+    lockerScriptAddress,
     deployedTxOutputValue,
     buildDatumForSCParameters(
       makeAddress(MARKETPLACE_ADDRESS),
@@ -123,8 +133,43 @@ const deploy = async (
   const handleInput = spareUtxos.splice(handleInputIndex, 1)[0];
   txBuilder.spendWithoutRedeemer(handleInput);
 
-  const tx = await txBuilder.buildUnsafe({ spareUtxos, changeAddress });
-  console.log(bytesToHex(tx.toCbor()));
+  const tx = await txBuilder.build({ spareUtxos, changeAddress });
+  tx.addSignatures(await wallet.signTx(tx));
+
+  console.log("Submitting Tx...");
+  const txId = await wallet.submitTx(tx);
+  console.log("Waiting for Transaction to be confirmed...");
+
+  while (true) {
+    const utxoResult = await mayFailAsync(() =>
+      blockfrostApi.getUtxo(makeTxOutputId(txId, 0))
+    ).complete();
+    if (!utxoResult.ok) {
+      await sleep(10_000); // sleep 10 seconds
+      continue;
+    }
+
+    console.log("Transaction confirmed, saving to file...");
+    const utxo = utxoResult.data;
+    const scriptDetail: ScriptDetails = {
+      handle: handleName,
+      handleHex: `${AssetNameLabel.LBL_222}${Buffer.from(handleName, "utf8").toString("hex")}`,
+      type: ScriptType.MARKETPLACE_CONTRACT,
+      validatorHash: bytesToHex(uplcProgram.hash()),
+      cbor: optimizedCompiledCode,
+      datumCbor: utxo.datum ? bytesToHex(utxo.datum.toCbor()) : undefined,
+      latest: true,
+      refScriptAddress: lockerScriptAddress.toBech32(),
+      refScriptUtxo: `${txId.toString()}#0`,
+      txBuildVersion: 1,
+    };
+    await fs.writeFile(
+      `${network}-deployed.json`,
+      JSON.stringify(scriptDetail)
+    );
+    console.log(`Saved ScriptDetail to ${network}-deployed.json`);
+    break;
+  }
 
   return Ok();
 };

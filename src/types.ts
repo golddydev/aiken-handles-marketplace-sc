@@ -1,5 +1,5 @@
-import { bytesToHex } from '@helios-lang/codec-utils';
-import { Tx } from '@helios-lang/ledger';
+import { bytesToHex } from "@helios-lang/codec-utils";
+import { Tx } from "@helios-lang/ledger";
 
 /**
  * Parameters for marketplace contract
@@ -55,7 +55,7 @@ class BuildTxError extends Error {
 
   constructor(message: string, failedTxCbor: string, failedTxJson: object) {
     super(message);
-    this.name = 'BuildTxError';
+    this.name = "BuildTxError";
     this.code = 500;
     this.failedTxCbor = failedTxCbor;
     this.failedTxJson = failedTxJson;
@@ -71,6 +71,7 @@ class BuildTxError extends Error {
  */
 interface SuccessResult {
   cbor: string;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   dump: any;
 }
 

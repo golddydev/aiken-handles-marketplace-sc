@@ -3,6 +3,10 @@ import { Decimal } from "decimal.js";
 import Enquirer from "enquirer";
 import { Err, Ok, Result } from "ts-res";
 
+const sleep = async (milliseconds: number): Promise<void> => {
+  await new Promise((resolve) => setTimeout(() => resolve(true), milliseconds));
+};
+
 const adaToLovelace = (ada: number): bigint =>
   BigInt(new Decimal(ada).mul(Math.pow(10, 6)).floor().toString());
 
@@ -52,4 +56,4 @@ const getSeed = async (program: Command, seed?: string): Promise<string> => {
   return seedResult.data;
 };
 
-export { adaToLovelace, bigIntMax, bigIntMin, getSeed };
+export { adaToLovelace, bigIntMax, bigIntMin, getSeed, sleep };

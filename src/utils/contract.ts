@@ -1,8 +1,8 @@
 import { NetworkParams } from "@helios-lang/ledger";
 import { NetworkName } from "@helios-lang/tx-utils";
+import { Result } from "ts-res";
 
 import { mayFailAsync } from "../helpers/index.js";
-import { Result } from "ts-res";
 
 const NETWORK_PARAMETER_URL = (network: NetworkName) =>
   `https://network-status.helios-lang.io/${network}/config`;

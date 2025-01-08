@@ -1,5 +1,3 @@
-import { MarketplaceDatum, Parameters, Payout } from "./types";
-
 import { bytesToHex, hexToBytes } from "@helios-lang/codec-utils";
 import { blake2b } from "@helios-lang/crypto";
 import {
@@ -18,6 +16,8 @@ import {
   makeListData,
 } from "@helios-lang/uplc";
 import { decodeCborToJson } from "@koralabs/kora-labs-common";
+
+import { MarketplaceDatum, Parameters, Payout } from "./types.js";
 
 const buildDatumTag = (outputRef: TxOutputId): InlineTxOutputDatum => {
   const cbor = outputRef.toUplcData().toCbor();
@@ -60,6 +60,7 @@ const decodeDatum = async (
   });
 
   const owner = makePubKeyHash(decoded[1].slice(2)).toHex();
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const payouts: Payout[] = decoded[0].map((rawPayout: any) => {
     const address = makeAddress(rawPayout[0].slice(2)).toBech32();
     const amountLovelace = BigInt(rawPayout[1]) as bigint;
@@ -101,9 +102,9 @@ const buildDatumForSCParameters = (
 
 export {
   buildDatum,
+  buildDatumForSCParameters,
   buildDatumTag,
   buildParametersDatum,
   decodeDatum,
   decodeParametersDatum,
-  buildDatumForSCParameters,
 };

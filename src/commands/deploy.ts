@@ -1,8 +1,7 @@
 import { loadConfig } from "../../src/config.js";
+import { deploy, DeployConfig } from "../../src/deploy.js";
 import { getSeed } from "../../src/utils/index.js";
 import program from "../cli.js";
-
-import { deploy, DeployConfig } from "../../src/deploy.js";
 
 const deployCommand = program
   .command("deploy")

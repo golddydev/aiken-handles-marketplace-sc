@@ -1,20 +1,20 @@
-import { makeBlockfrostV0Client } from '@helios-lang/tx-utils';
-import { loadConfig } from '../../src/config';
-// import { list, ListConfig } from '../../src/list';
-import { adaToLovelace } from '../../src/utils';
-import program from '../cli';
+import { bytesToHex } from "@helios-lang/codec-utils";
+import { makeAddress } from "@helios-lang/ledger";
+import { makeBlockfrostV0Client } from "@helios-lang/tx-utils";
+import { AssetNameLabel } from "@koralabs/kora-labs-common";
 
-import { AssetNameLabel } from '@koralabs/kora-labs-common';
-import { makeAddress } from '@helios-lang/ledger';
-import { bytesToHex } from '@helios-lang/codec-utils';
+import { loadConfig } from "../../src/config.js";
+// import { list, ListConfig } from '../../src/list';
+import { adaToLovelace } from "../../src/utils/index.js";
+import program from "../cli.js";
 
 const buyCommand = program
-  .command('list')
-  .description('List Handle NFT on Marketplace')
-  .argument('<address>', 'Address to perform listing')
-  .argument('<handle-name>', 'Ada Handle Name to list on marketplace')
-  .argument('<price>', 'Price in ada')
-  .argument('<creator-address>', 'Address of artist who create this NFT')
+  .command("list")
+  .description("List Handle NFT on Marketplace")
+  .argument("<address>", "Address to perform listing")
+  .argument("<handle-name>", "Ada Handle Name to list on marketplace")
+  .argument("<price>", "Price in ada")
+  .argument("<creator-address>", "Address of artist who create this NFT")
   .action(
     async (
       bech32Address: string,
