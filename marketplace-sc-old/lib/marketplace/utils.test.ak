@@ -1,4 +1,4 @@
-use aiken/builtin
+use aiken/builtin.{blake2b_256, serialise_data}
 use aiken/list
 use aiken/transaction.{
   InlineDatum, NoDatum, Output, OutputReference, TransactionId,
@@ -29,8 +29,8 @@ test check_marketplace_payout_valid_input() {
       transaction_id: TransactionId { hash: #"00" },
       output_index: 0,
     }
-      |> builtin.serialise_data
-      |> builtin.blake2b_256
+      |> serialise_data
+      |> blake2b_256
       |> InlineDatum
 
   let output =
@@ -54,8 +54,8 @@ test check_marketplace_payout_invalid_address() {
       transaction_id: TransactionId { hash: #"00" },
       output_index: 0,
     }
-      |> builtin.serialise_data
-      |> builtin.blake2b_256
+      |> serialise_data
+      |> blake2b_256
       |> InlineDatum
 
   let output =
@@ -82,8 +82,8 @@ test check_marketplace_payout_incorrect_amount() {
       transaction_id: TransactionId { hash: #"00" },
       output_index: 0,
     }
-      |> builtin.serialise_data
-      |> builtin.blake2b_256
+      |> serialise_data
+      |> blake2b_256
       |> InlineDatum
 
   let output =
@@ -128,8 +128,8 @@ test check_payouts_with_trailing_outputs() {
       transaction_id: TransactionId { hash: #"00" },
       output_index: 0,
     }
-      |> builtin.serialise_data
-      |> builtin.blake2b_256
+      |> serialise_data
+      |> blake2b_256
       |> InlineDatum
 
   let out_1 =
@@ -191,8 +191,8 @@ test check_payouts_with_mixed_outputs() fail {
       transaction_id: TransactionId { hash: #"00" },
       output_index: 0,
     }
-      |> builtin.serialise_data
-      |> builtin.blake2b_256
+      |> serialise_data
+      |> blake2b_256
       |> InlineDatum
 
   let out_1 =
@@ -257,8 +257,8 @@ test check_payouts_with_leading_outputs() fail {
       transaction_id: TransactionId { hash: #"00" },
       output_index: 0,
     }
-      |> builtin.serialise_data
-      |> builtin.blake2b_256
+      |> serialise_data
+      |> blake2b_256
       |> InlineDatum
 
   let out_1 =
@@ -319,8 +319,8 @@ test check_payouts_with_wrong_amounts() fail {
       transaction_id: TransactionId { hash: #"00" },
       output_index: 0,
     }
-      |> builtin.serialise_data
-      |> builtin.blake2b_256
+      |> serialise_data
+      |> blake2b_256
       |> InlineDatum
 
   let out_1 =
@@ -381,8 +381,8 @@ test check_payouts_with_wrong_address() fail {
       transaction_id: TransactionId { hash: #"00" },
       output_index: 0,
     }
-      |> builtin.serialise_data
-      |> builtin.blake2b_256
+      |> serialise_data
+      |> blake2b_256
       |> InlineDatum
 
   let out_1 =
@@ -436,8 +436,8 @@ test check_payouts_with_single_payout() {
       transaction_id: TransactionId { hash: #"00" },
       output_index: 0,
     }
-      |> builtin.serialise_data
-      |> builtin.blake2b_256
+      |> serialise_data
+      |> blake2b_256
       |> InlineDatum
 
   let out_1 =
