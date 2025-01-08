@@ -4,7 +4,7 @@ import { makeBlockfrostV0Client } from "@helios-lang/tx-utils";
 import { AssetNameLabel } from "@koralabs/kora-labs-common";
 
 import { loadConfig } from "../../src/config.js";
-// import { list, ListConfig } from '../../src/list';
+import { list, ListConfig } from "../../src/list.js";
 import { adaToLovelace } from "../../src/utils/index.js";
 import program from "../cli.js";
 
@@ -30,29 +30,30 @@ const buyCommand = program
         config.network,
         config.blockfrostApiKey
       );
-      const utxos = await api.getUtxos(makeAddress(bech32Address));
-      // const listConfig: ListConfig = {
-      //   changeBech32Address: bech32Address,
-      //   cborUtxos: utxos.map((utxo) => bytesToHex(utxo.toCbor())),
-      //   handleHex: `${AssetNameLabel.LBL_222}${Buffer.from(
-      //     handleName,
-      //     'utf8'
-      //   ).toString('hex')}`,
-      //   payouts: [
-      //     {
-      //       address: bech32Address,
-      //       amountLovelace: adaToLovelace(Number(priceString) * 0.9),
-      //     },
-      //     {
-      //       address: creatorBech32Address,
-      //       amountLovelace: adaToLovelace(Number(priceString) * 0.1),
-      //     },
-      //   ],
-      // };
 
-      // const txResult = await list(listConfig, config.network);
-      // if (!txResult.ok) console.log(txResult.error);
-      // else console.log(txResult.data);
+      const utxos = await api.getUtxos(makeAddress(bech32Address));
+      const listConfig: ListConfig = {
+        changeBech32Address: bech32Address,
+        cborUtxos: utxos.map((utxo) => bytesToHex(utxo.toCbor(true))),
+        handleHex: `${AssetNameLabel.LBL_222}${Buffer.from(
+          handleName,
+          "utf8"
+        ).toString("hex")}`,
+        payouts: [
+          {
+            address: bech32Address,
+            amountLovelace: adaToLovelace(Number(priceString) * 0.9),
+          },
+          {
+            address: creatorBech32Address,
+            amountLovelace: adaToLovelace(Number(priceString) * 0.1),
+          },
+        ],
+      };
+
+      const txResult = await list(listConfig, config.network);
+      if (!txResult.ok) console.log(txResult.error);
+      else console.log(txResult.data);
     }
   );
 

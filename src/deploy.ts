@@ -36,9 +36,9 @@ import {
   MARKETPLACE_ADDRESS,
 } from "./constants/index.js";
 import { optimizedCompiledCode } from "./contracts/plutus-v2/contract.js";
-import { buildDatumForSCParameters } from "./datum.js";
+import { buildSCParametersDatum } from "./datum.js";
 import { BuildTxError } from "./types.js";
-import { fetchNetworkParameter, sleep } from "./utils/index.js";
+import { fetchNetworkParameters, sleep } from "./utils/index.js";
 
 /**
  * Configuration of function to deploy marketplace smart contract
@@ -69,11 +69,13 @@ const deploy = async (
 
   const { handleName, seed } = config;
   const txBuilder = makeTxBuilder({ isMainnet: IS_PRODUCTION });
-  const networkParamsResult = await fetchNetworkParameter(network);
-  if (!networkParamsResult.ok)
-    return Err(new Error(`Failed to fetch network "${network}" parameter`));
-  const networkParameter = networkParamsResult.data;
-  const networkParameterHelper = makeNetworkParamsHelper(networkParameter);
+
+  // fetch network parameters
+  const networkParametersResult = await fetchNetworkParameters(network);
+  if (!networkParametersResult.ok)
+    return Err(new Error("Failed to fetch network parameter"));
+  const networkParameters = networkParametersResult.data;
+  const networkParameterHelper = makeNetworkParamsHelper(networkParameters);
 
   const blockfrostApi = makeBlockfrostV0Client(network, blockfrostApiKey);
   const wallet = makeSimpleWallet(
@@ -115,13 +117,13 @@ const deploy = async (
   const deployedTxOutput = makeTxOutput(
     lockerScriptAddress,
     deployedTxOutputValue,
-    buildDatumForSCParameters(
+    buildSCParametersDatum(
       makeAddress(MARKETPLACE_ADDRESS),
       AUTHORIZERS.map((authorizer) => makePubKeyHash(authorizer))
     ),
     uplcProgram
   );
-  deployedTxOutput.correctLovelace(networkParameter);
+  deployedTxOutput.correctLovelace(networkParameters);
   txBuilder.addOutput(deployedTxOutput);
 
   // find ada handle input
@@ -156,7 +158,9 @@ const deploy = async (
       handleHex: `${AssetNameLabel.LBL_222}${Buffer.from(handleName, "utf8").toString("hex")}`,
       type: ScriptType.MARKETPLACE_CONTRACT,
       validatorHash: bytesToHex(uplcProgram.hash()),
-      cbor: optimizedCompiledCode,
+      cbor: utxo.output.refScript
+        ? bytesToHex(utxo.output.refScript.toCbor())
+        : undefined,
       datumCbor: utxo.datum ? bytesToHex(utxo.datum.toCbor()) : undefined,
       latest: true,
       refScriptAddress: lockerScriptAddress.toBech32(),

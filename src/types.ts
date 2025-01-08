@@ -17,7 +17,7 @@ interface Parameters {
  * Payout - you have to pay `amountLovelace` to `address` when buy handle
  * @interface
  * @typedef {object} Payout
- * @property {string} address
+ * @property {string} address bech32 format
  * @property {bigint} amountLovelace
  */
 interface Payout {
