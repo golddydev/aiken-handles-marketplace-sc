@@ -1,5 +1,6 @@
 import {
   makeBlockfrostV0Client,
+  makeEmulator,
   makeSimpleWallet,
   makeTxBuilder,
   NetworkName,
@@ -30,6 +31,8 @@ import { decodeUplcProgramV2FromCbor } from "@helios-lang/uplc";
 import { fetchNetworkParameter } from "./utils/index.js";
 import blueprints from "../plutus-old.json" assert { type: "json" };
 import { bytesToHex } from "@helios-lang/codec-utils";
+
+makeEmulator()
 
 /**
  * Configuration of function to deploy marketplace smart contract
