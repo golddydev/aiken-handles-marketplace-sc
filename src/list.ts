@@ -3,11 +3,12 @@ import {
   decodeTxInput,
   makeAddress,
   makeAssets,
-  makePubKeyHash,
   makeTxOutput,
+  makeValidatorHash,
   makeValue,
 } from "@helios-lang/ledger";
 import { makeTxBuilder, NetworkName } from "@helios-lang/tx-utils";
+import { ScriptDetails } from "@koralabs/kora-labs-common";
 import { Err, Ok, Result } from "ts-res";
 
 import { HANDLE_POLICY_ID } from "./constants/index.js";
@@ -25,12 +26,14 @@ import { fetchNetworkParameters, getUplcProgram } from "./utils/index.js";
  * @property {string[]} cborUtxos UTxOs (cbor format) of wallet
  * @property {string} handleHex Handle name's hex format (asset name label is also included)
  * @property {Payout[]} payouts Payouts which is requried to pay when buy this handle
+ * @property {ScriptDetails | undefined} customRefScriptDetail Custom Reference Script Detail
  */
 interface ListConfig {
   changeBech32Address: string;
   cborUtxos: string[];
   handleHex: string;
   payouts: Payout[];
+  customRefScriptDetail?: ScriptDetails;
 }
 
 /**
@@ -44,13 +47,21 @@ const list = async (
   network: NetworkName
 ): Promise<Result<SuccessResult, Error>> => {
   const isMainnet = network === "mainnet";
-  const { changeBech32Address, cborUtxos, handleHex, payouts } = config;
+  const {
+    changeBech32Address,
+    cborUtxos,
+    handleHex,
+    payouts,
+    customRefScriptDetail,
+  } = config;
 
   // TODO:
   // fetch deployed script from api.handle.me
 
   // use deployed script if fetch is failed
-  const refScriptDetail = Object.values(deployedScripts[network])[0];
+  const refScriptDetail = customRefScriptDetail
+    ? customRefScriptDetail
+    : Object.values(deployedScripts[network])[0];
   const { cbor, datumCbor, refScriptUtxo } = refScriptDetail;
   if (!cbor) return Err(new Error("Deploy script cbor is empty"));
   if (!datumCbor) return Err(new Error("Deploy script's datum cbor is empty"));
@@ -120,8 +131,8 @@ const list = async (
   const listingHandleOutput = makeTxOutput(
     makeAddress(
       isMainnet,
-      makePubKeyHash(uplcProgram.hash()),
-      changeAddress.stakingCredential
+      makeValidatorHash(uplcProgram.hash())
+      // changeAddress.stakingCredential, // when listed NFT needs to be under user's staking credential
     ),
     listingHandleValue,
     listingDatumResult.data
@@ -144,7 +155,7 @@ const list = async (
     return Err(new Error(`Building Tx error: ${txResult.error}`));
 
   return Ok({
-    cbor: bytesToHex(txResult.data.toCbor()),
+    tx: txResult.data,
     dump: txResult.data.dump(),
   });
 };

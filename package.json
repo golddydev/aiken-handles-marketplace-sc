@@ -6,7 +6,8 @@
   "type": "module",
   "scripts": {
     "lint": "eslint \"**/{src,test}/**/*.{ts,mjs}\"",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "ex": "tsx ./src/ex.ts",
+    "test": "vitest run"
   },
   "bin": {
     "marketplace": "./bin/marketplace"
@@ -16,7 +17,7 @@
   "license": "ISC",
   "dependencies": {
     "@helios-lang/codec-utils": "^0.3.3",
-    "@helios-lang/compiler": "^0.17.9",
+    "@helios-lang/compiler": "^0.17.10",
     "@helios-lang/crypto": "^0.2.2",
     "@helios-lang/ledger": "^0.6.13",
     "@helios-lang/tx-utils": "^0.3.15",
@@ -40,6 +41,8 @@
     "prettier": "^3.4.2",
     "tsx": "^4.19.2",
     "typescript": "^5.7.2",
-    "typescript-eslint": "^8.19.0"
+    "typescript-eslint": "^8.19.0",
+    "vite-tsconfig-paths": "^5.1.4",
+    "vitest": "^2.1.8"
   }
 }

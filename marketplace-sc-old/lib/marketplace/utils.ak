@@ -88,7 +88,7 @@ pub fn check_marketplace_payout(
   // transactions not constructed by Koralabs.
   let quantity_check = quantity >= marketplace_fee
 
-  datum_check && address_check && quantity_check && policy_check
+  datum_check? && address_check? && quantity_check? && policy_check?
 }
 
 /// Check that payouts and payout outputs

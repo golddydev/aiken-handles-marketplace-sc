@@ -1,6 +1,8 @@
 use aiken/builtin.{blake2b_256, serialise_data}
 use aiken/list
-use aiken/transaction.{InlineDatum, NoDatum, ScriptContext, Spend, Transaction, Datum}
+use aiken/transaction.{
+  Datum, InlineDatum, NoDatum, ScriptContext, Spend, Transaction,
+}
 use marketplace/constants
 use marketplace/types.{Payout, VerificationKeyHash}
 use marketplace/utils.{
@@ -34,7 +36,11 @@ type MarketplaceRedeemer {
 validator {
   /// Validate that the signer is the owner or that payouts
   /// are present as outputs and that the tag is correct.
-  fn spend(datum: MarketplaceDatum, redeemer: MarketplaceRedeemer, ctx: ScriptContext) -> Bool {
+  fn spend(
+    datum: MarketplaceDatum,
+    redeemer: MarketplaceRedeemer,
+    ctx: ScriptContext,
+  ) -> Bool {
     let ScriptContext { transaction, purpose } = ctx
 
     let Transaction { outputs, extra_signatories, .. } = transaction
@@ -77,6 +83,7 @@ validator {
           // For a payouts in excess of 100k ada the error is less than 40000 lovelace.
           let marketplace_fee = payouts_sum * 50 / 49 / 50
 
+          trace @"Start checking marketplace payout"
           // Make sure that the marketplace output
           // is correct.
           check_marketplace_payout(

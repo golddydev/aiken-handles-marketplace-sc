@@ -1,6 +1,6 @@
 import { NetworkParams } from "@helios-lang/ledger";
 import { NetworkName } from "@helios-lang/tx-utils";
-import { decodeUplcProgramV2FromCbor, UplcProgram } from "@helios-lang/uplc";
+import { decodeUplcProgramV2FromCbor, UplcProgramV2 } from "@helios-lang/uplc";
 import { Result } from "ts-res";
 
 import { optimizedCompiledCode } from "../contracts/plutus-v2/contract.js";
@@ -24,7 +24,7 @@ const fetchNetworkParameters = async (
 // add arguments of
 // parameters: Parameters
 // version: "PlutusV2" | "PlutusV3"
-const getUplcProgram = async (): Promise<Result<UplcProgram, string>> => {
+const getUplcProgram = async (): Promise<Result<UplcProgramV2, string>> => {
   return mayFail(() => decodeUplcProgramV2FromCbor(optimizedCompiledCode));
 };
 

@@ -16,7 +16,6 @@ export const HANDLE_API_ENDPOINT =
   process.env.HANDLE_API_ENDPOINT || `https://${NETWORK_HOST}api.handle.me`;
 
 /// tx
-export const MIN_FEE = 5_000_000n; /// 5 ada
 export const MIN_LOVELACE = 3_000_000n; /// at leat 3 ada for each utxo
 
 /// ada handle

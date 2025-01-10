@@ -1,5 +1,6 @@
 import { bytesToHex } from "@helios-lang/codec-utils";
 import {
+  decodeTxInput,
   hashNativeScript,
   makeAddress,
   makeAfterScript,
@@ -11,9 +12,10 @@ import {
   makeTxOutput,
   makeTxOutputId,
   makeValue,
+  Tx,
 } from "@helios-lang/ledger";
 import {
-  makeBlockfrostV0Client,
+  BlockfrostV0Client,
   makeSimpleWallet,
   makeTxBuilder,
   NetworkName,
@@ -35,7 +37,10 @@ import {
   HANDLE_POLICY_ID,
   MARKETPLACE_ADDRESS,
 } from "./constants/index.js";
-import { optimizedCompiledCode } from "./contracts/plutus-v2/contract.js";
+import {
+  optimizedCompiledCode,
+  unoptimizedCompiledCode,
+} from "./contracts/plutus-v2/contract.js";
 import { buildSCParametersDatum } from "./datum.js";
 import { BuildTxError } from "./types.js";
 import { fetchNetworkParameters, sleep } from "./utils/index.js";
@@ -45,29 +50,33 @@ import { fetchNetworkParameters, sleep } from "./utils/index.js";
  * @interface
  * @typedef {object} DeployConfig
  * @property {string} handleName Ada Handle Name to deploy with SC
- * @property {string} seed Seed phrase of wallet to deploy SC
+ * @property {string} changeBech32Address Change address of wallet who is performing `deploy`
+ * @property {string[]} cborUtxos UTxOs (cbor format) of wallet
+ * @property {string | undefined} seed Seed phrase of wallet to deploy SC
  */
 interface DeployConfig {
   handleName: string;
-  seed: string;
+  changeBech32Address: string;
+  cborUtxos: string[];
+  seed?: string | undefined;
 }
 
 /**
  * Deploy Marketplace Smart Contract
  * @param {DeployConfig} config
  * @param {NetworkName} network
- * @property {string} blockfrostApiKey Blockfrost API Key
- * @returns {Promise<Result<void,  Error>>}
+ * @param {BlockfrostV0Client | undefined} blockfrostApi Blockfrost V0 Client
+ * @returns {Promise<Result<void | Tx,  Error>>}
  */
 
 const deploy = async (
   config: DeployConfig,
   network: NetworkName,
-  blockfrostApiKey: string
-): Promise<Result<void, Error | BuildTxError>> => {
+  blockfrostApi?: BlockfrostV0Client
+): Promise<Result<void | Tx, Error | BuildTxError>> => {
   console.log(`Deploying to ${network} network...`);
 
-  const { handleName, seed } = config;
+  const { handleName, changeBech32Address, seed, cborUtxos } = config;
   const txBuilder = makeTxBuilder({ isMainnet: IS_PRODUCTION });
 
   // fetch network parameters
@@ -77,15 +86,16 @@ const deploy = async (
   const networkParameters = networkParametersResult.data;
   const networkParameterHelper = makeNetworkParamsHelper(networkParameters);
 
-  const blockfrostApi = makeBlockfrostV0Client(network, blockfrostApiKey);
-  const wallet = makeSimpleWallet(
-    restoreRootPrivateKey(seed.split(" ")),
-    blockfrostApi
-  );
-  const spareUtxos = await wallet.utxos;
-  const changeAddress = wallet.address.toBech32();
+  const changeAddress = makeAddress(changeBech32Address);
+  const spareUtxos = cborUtxos.map(decodeTxInput);
+
+  if (changeAddress.spendingCredential.kind != "PubKeyHash")
+    return Err(new Error("Must be Base wallet to deploy"));
 
   const uplcProgram = decodeUplcProgramV2FromCbor(optimizedCompiledCode);
+  const unoptimizedUplcProgram = decodeUplcProgramV2FromCbor(
+    unoptimizedCompiledCode
+  );
 
   const lockerScriptAddress = makeAddress(
     network == "mainnet",
@@ -93,7 +103,7 @@ const deploy = async (
       hashNativeScript(
         makeAllScript([
           makeAfterScript(networkParameterHelper.timeToSlot(Date.now())),
-          makeSigScript(wallet.spendingPubKeyHash),
+          makeSigScript(changeAddress.spendingCredential.toHex()),
         ])
       )
     )
@@ -133,9 +143,17 @@ const deploy = async (
   if (handleInputIndex < 0)
     return Err(new Error(`You don't have $${handleName} handle`));
   const handleInput = spareUtxos.splice(handleInputIndex, 1)[0];
-  txBuilder.spendWithoutRedeemer(handleInput);
+  txBuilder.spendUnsafe(handleInput);
 
   const tx = await txBuilder.build({ spareUtxos, changeAddress });
+
+  if (!seed || !blockfrostApi) return Ok(tx);
+
+  /// sign and submit
+  const wallet = makeSimpleWallet(
+    restoreRootPrivateKey(seed.split(" ")),
+    blockfrostApi
+  );
   tx.addSignatures(await wallet.signTx(tx));
 
   console.log("Submitting Tx...");
@@ -161,6 +179,7 @@ const deploy = async (
       cbor: utxo.output.refScript
         ? bytesToHex(utxo.output.refScript.toCbor())
         : undefined,
+      unoptimizedCbor: bytesToHex(unoptimizedUplcProgram.toCbor()),
       datumCbor: utxo.datum ? bytesToHex(utxo.datum.toCbor()) : undefined,
       latest: true,
       refScriptAddress: lockerScriptAddress.toBech32(),

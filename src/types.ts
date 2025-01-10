@@ -70,7 +70,7 @@ class BuildTxError extends Error {
  * @property {any} dump Transaction's Dump
  */
 interface SuccessResult {
-  cbor: string;
+  tx: Tx;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   dump: any;
 }
