@@ -47,7 +47,7 @@ const setup = async () => {
     ])
   );
   emulator.tick(200);
-  const userWallet1 = emulator.createWallet(
+  const user1Wallet = emulator.createWallet(
     1000_000_000n,
     makeAssets([
       [
@@ -62,11 +62,11 @@ const setup = async () => {
     ])
   );
   emulator.tick(200);
-  const userWallet2 = emulator.createWallet(1000_000_000n);
+  const user2Wallet = emulator.createWallet(1000_000_000n);
   emulator.tick(200);
-  const userWallet3 = emulator.createWallet(1000_000_000n);
+  const user3Wallet = emulator.createWallet(1000_000_000n);
   emulator.tick(200);
-  const userWallet4 = emulator.createWallet(1000_000_000n);
+  const user4Wallet = emulator.createWallet(1000_000_000n);
   emulator.tick(200);
 
   const fundWalletUtxos = await emulator.getUtxos(fundWallet.address);
@@ -120,15 +120,16 @@ const setup = async () => {
 
   return {
     emulator,
+    parameters,
     deployedHandleName,
     testHandleName,
     referenceScriptUTxO,
     refScriptDetail,
     fundWallet,
-    userWallet1,
-    userWallet2,
-    userWallet3,
-    userWallet4,
+    user1Wallet,
+    user2Wallet,
+    user3Wallet,
+    user4Wallet,
     network,
     txIds: {
       listingTxId: makeDummyTxId(),
