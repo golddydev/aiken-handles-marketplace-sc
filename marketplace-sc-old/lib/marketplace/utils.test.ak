@@ -53,7 +53,7 @@ test check_marketplace_payout_valid_input() {
 /// output address is the hardcoded marketplace credential.
 /// If the output address does not match the marketplace address
 /// `check_marketplace_payout` will return `False`.
-test check_marketplace_payout_invalid_address() {
+test check_marketplace_payout_invalid_address() fail {
   let datum_tag =
     OutputReference {
       transaction_id: TransactionId { hash: #"00" },
@@ -74,14 +74,14 @@ test check_marketplace_payout_invalid_address() {
       reference_script: None,
     }
 
-  !check_marketplace_payout(output, maketplace_address(), 2000000, datum_tag)
+  check_marketplace_payout(output, maketplace_address(), 2000000, datum_tag)
 }
 
 /// This test makes sure that the marketplace payout
 /// output value is greater than or equal to the marketplace fee.
 /// If the value at the ouput is less than the marketplace fee
 /// in the datum `check_marketplace_payout` will return `False`.
-test check_marketplace_payout_incorrect_amount() {
+test check_marketplace_payout_incorrect_amount() fail {
   let datum_tag =
     OutputReference {
       transaction_id: TransactionId { hash: #"00" },
@@ -100,7 +100,7 @@ test check_marketplace_payout_incorrect_amount() {
       reference_script: None,
     }
 
-  !check_marketplace_payout(output, maketplace_address(), 2000000, datum_tag)
+  check_marketplace_payout(output, maketplace_address(), 2000000, datum_tag)
 }
 
 /// This test makes sure the `check_payouts` returns true
