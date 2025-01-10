@@ -1,8 +1,8 @@
 use aiken/builtin.{tail_list}
 use aiken/dict
 use aiken/transaction.{Datum, NoDatum, Output}
+use aiken/transaction/credential.{Address}
 use aiken/transaction/value.{ada_policy_id, to_dict}
-use marketplace/constants
 use marketplace/types.{Payout}
 
 /// Find the outputs that match the list of payouts.
@@ -64,6 +64,7 @@ fn skip_10_items(some_list: List<a>) -> List<a> {
 /// to compare to.
 pub fn check_marketplace_payout(
   output: Output,
+  marketplace_address: Address,
   marketplace_fee: Int,
   datum_tag: Datum,
 ) -> Bool {
@@ -72,7 +73,7 @@ pub fn check_marketplace_payout(
   let datum_check = datum == datum_tag
 
   // Match hardcoded marketplace address
-  let address_check = output_address == constants.marketplace_addr()
+  let address_check = output_address == marketplace_address
 
   expect [Pair(policy, tokens)] =
     value

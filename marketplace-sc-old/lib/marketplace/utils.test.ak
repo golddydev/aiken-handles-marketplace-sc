@@ -3,12 +3,17 @@ use aiken/list
 use aiken/transaction.{
   InlineDatum, NoDatum, Output, OutputReference, TransactionId,
 }
-use aiken/transaction/credential
+use aiken/transaction/credential.{
+  Address, from_verification_key, with_delegation_key,
+}
 use aiken/transaction/value
-use marketplace/constants.{marketplace_addr}
 use marketplace/types.{Payout}
 use marketplace/utils.{
   check_marketplace_payout, check_payouts, find_payout_outputs,
+}
+
+fn maketplace_address() -> Address {
+  from_verification_key(#"1234") |> with_delegation_key(#"1234")
 }
 
 test find_payout_outputs_1() {
@@ -35,13 +40,13 @@ test check_marketplace_payout_valid_input() {
 
   let output =
     Output {
-      address: marketplace_addr(),
+      address: maketplace_address(),
       value: value.from_lovelace(2000000),
       datum: datum_tag,
       reference_script: None,
     }
 
-  check_marketplace_payout(output, 2000000, datum_tag)
+  check_marketplace_payout(output, maketplace_address(), 2000000, datum_tag)
 }
 
 /// This test makes sure that the marketplace payout
@@ -69,7 +74,7 @@ test check_marketplace_payout_invalid_address() {
       reference_script: None,
     }
 
-  !check_marketplace_payout(output, 2000000, datum_tag)
+  !check_marketplace_payout(output, maketplace_address(), 2000000, datum_tag)
 }
 
 /// This test makes sure that the marketplace payout
@@ -89,13 +94,13 @@ test check_marketplace_payout_incorrect_amount() {
   let output =
     Output {
       // anything but the marketplace address
-      address: marketplace_addr(),
+      address: maketplace_address(),
       value: value.from_lovelace(1000000),
       datum: datum_tag,
       reference_script: None,
     }
 
-  !check_marketplace_payout(output, 2000000, datum_tag)
+  !check_marketplace_payout(output, maketplace_address(), 2000000, datum_tag)
 }
 
 /// This test makes sure the `check_payouts` returns true

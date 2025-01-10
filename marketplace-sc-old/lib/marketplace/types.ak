@@ -1,11 +1,19 @@
-use aiken/hash.{Blake2b_224, Hash}
-use aiken/transaction/credential.{Address, Script, VerificationKey}
+use aiken/transaction/credential.{Address}
+use common/types.{VerificationKeyHash}
 
-pub type ScriptHash =
-  Hash<Blake2b_224, Script>
-
-pub type VerificationKeyHash =
-  Hash<Blake2b_224, VerificationKey>
+/// A listing requires a datum that has
+/// the owner's payment key and a list of payouts.
+/// We do not need to specify the marketplace payout
+/// in `payouts` even though it will be in
+/// one of the outputs.
+pub type MarketplaceDatum {
+  /// Does not contain the marketplace payout.
+  /// This is usually royalty and seller payouts.
+  payouts: List<Payout>,
+  /// Flexible to allow discounts
+  /// The key that listed the NFT
+  owner: VerificationKeyHash,
+}
 
 pub type Payout {
   address: Address,
