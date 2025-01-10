@@ -1,10 +1,10 @@
 import { bytesToHex } from "@helios-lang/codec-utils";
 import { makeTxOutputId } from "@helios-lang/ledger";
 import { AssetNameLabel } from "@koralabs/kora-labs-common";
-import { invariant } from "helpers/index.js";
 import { assert, describe } from "vitest";
 
 import { buy, BuyConfig } from "../src/buy.js";
+import { invariant } from "../src/helpers/index.js";
 import { list, ListConfig } from "../src/list.js";
 import { myTest } from "./setup.js";
 
@@ -111,6 +111,81 @@ describe.sequential("Koralab Marketplace smart contract test", () => {
           user3Output.value.lovelace == 10_000_000n,
         "User_3 Output is not valid"
       );
+    }
+  );
+
+  myTest(
+    "user_2 list <test> handle for 1000 ada, 10% of it should go to user_3 as royalty - (too expensive to buy)",
+    async ({
+      emulator,
+      user2Wallet,
+      user3Wallet,
+      testHandleName,
+      network,
+      refScriptDetail,
+      txIds,
+    }) => {
+      const userUtxos = await emulator.getUtxos(user2Wallet.address);
+      const userCborUtxos = userUtxos.map((utxo) =>
+        bytesToHex(utxo.toCbor(true))
+      );
+      const listConfig: ListConfig = {
+        cborUtxos: userCborUtxos,
+        changeBech32Address: user2Wallet.address.toBech32(),
+        handleHex: `${AssetNameLabel.LBL_222}${Buffer.from(testHandleName, "utf8").toString("hex")}`,
+        payouts: [
+          {
+            address: user2Wallet.address.toBech32(),
+            amountLovelace: 900_000_000n,
+          },
+          {
+            address: user3Wallet.address.toBech32(),
+            amountLovelace: 100_000_000n,
+          },
+        ],
+        customRefScriptDetail: refScriptDetail,
+      };
+      const listTxResult = await list(listConfig, network);
+      invariant(listTxResult.ok, "List Tx Failed");
+
+      const { tx: listTx } = listTxResult.data;
+      listTx.addSignatures(await user2Wallet.signTx(listTx));
+      const txId = await user2Wallet.submitTx(listTx);
+      emulator.tick(200);
+      txIds.listingTxId = txId;
+    }
+  );
+
+  myTest(
+    "user_4 fails to buy <test> handle, because that is too expensive",
+    async ({
+      emulator,
+      user4Wallet,
+      testHandleName,
+      network,
+      refScriptDetail,
+      txIds,
+    }) => {
+      const { listingTxId } = txIds;
+      invariant(listingTxId, "Listing is not happened");
+
+      const listingUtxo = await emulator.getUtxo(
+        makeTxOutputId(listingTxId, 0)
+      );
+      const userUtxos = await emulator.getUtxos(user4Wallet.address);
+      const userCborUtxos = userUtxos.map((utxo) =>
+        bytesToHex(utxo.toCbor(true))
+      );
+      const buyConfig: BuyConfig = {
+        cborUtxos: userCborUtxos,
+        changeBech32Address: user4Wallet.address.toBech32(),
+        handleHex: `${AssetNameLabel.LBL_222}${Buffer.from(testHandleName, "utf8").toString("hex")}`,
+        listingCborUtxo: bytesToHex(listingUtxo.toCbor(true)),
+        customRefScriptDetail: refScriptDetail,
+      };
+      const buyTxResult = await buy(buyConfig, network);
+      invariant(!buyTxResult.ok);
+      console.info("Error:", buyTxResult.error.message);
     }
   );
 });

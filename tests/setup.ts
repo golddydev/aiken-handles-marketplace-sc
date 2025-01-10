@@ -26,6 +26,7 @@ import { deploy } from "../src/deploy.js";
 import { invariant } from "../src/helpers/index.js";
 
 const network: NetworkName = "preview";
+const ACCOUNT_LOVELACE = 500_000_000n;
 
 const setup = async () => {
   const emulator = makeEmulator();
@@ -33,7 +34,7 @@ const setup = async () => {
   const deployedHandleName = "mp_contract";
   const testHandleName = "test";
   const fundWallet = emulator.createWallet(
-    1000_000_000n,
+    ACCOUNT_LOVELACE,
     makeAssets([
       [
         HANDLE_POLICY_ID,
@@ -48,7 +49,7 @@ const setup = async () => {
   );
   emulator.tick(200);
   const user1Wallet = emulator.createWallet(
-    1000_000_000n,
+    ACCOUNT_LOVELACE,
     makeAssets([
       [
         HANDLE_POLICY_ID,
@@ -62,11 +63,11 @@ const setup = async () => {
     ])
   );
   emulator.tick(200);
-  const user2Wallet = emulator.createWallet(1000_000_000n);
+  const user2Wallet = emulator.createWallet(ACCOUNT_LOVELACE);
   emulator.tick(200);
-  const user3Wallet = emulator.createWallet(1000_000_000n);
+  const user3Wallet = emulator.createWallet(ACCOUNT_LOVELACE);
   emulator.tick(200);
-  const user4Wallet = emulator.createWallet(1000_000_000n);
+  const user4Wallet = emulator.createWallet(ACCOUNT_LOVELACE);
   emulator.tick(200);
 
   const fundWalletUtxos = await emulator.getUtxos(fundWallet.address);
