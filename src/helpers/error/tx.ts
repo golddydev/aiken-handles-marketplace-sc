@@ -44,20 +44,28 @@ const mayFailTransaction = (
             logOptions: logger,
           });
           return Ok({ tx, dump: tx.dump() });
-        } catch (txBuildError) {
+        } catch (txError) {
+          if (logs.length == 0) {
+            /// when the error is not related to Tx Validation
+            const txBuildError = new Error(
+              `Tx Build error: ${convertError(txError)}`
+            );
+            handler(txBuildError);
+            return Err(txBuildError);
+          }
           try {
             const failedTx = await txBuilder.buildUnsafe({
               changeAddress,
               spareUtxos,
               throwBuildPhaseScriptErrors: false,
             });
-            const txError = new Error(
-              convertError(txBuildError) +
+            const txValidationError = new Error(
+              convertError(txError) +
                 "\nValidation logs:" +
                 logs.map((log) => "\nLog: " + log)
             );
-            handler(BuildTxError.fromError(txError, failedTx));
-            return Err(txError);
+            handler(BuildTxError.fromError(txValidationError, failedTx));
+            return Err(txValidationError);
           } catch (unexpectedError) {
             const txError = new Error(
               `Unexpected Error: ${convertError(unexpectedError)}`

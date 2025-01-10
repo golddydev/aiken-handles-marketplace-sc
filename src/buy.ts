@@ -1,4 +1,3 @@
-import { bytesToHex } from "@helios-lang/codec-utils";
 import {
   decodeTxInput,
   decodeTxOutputDatum,
@@ -25,11 +24,7 @@ import { deployedScripts } from "./deployed/index.js";
 import { mayFail, mayFailTransaction } from "./helpers/index.js";
 import { Buy } from "./redeemer.js";
 import { BuildTxError, SuccessResult } from "./types.js";
-import {
-  bigIntMax,
-  fetchNetworkParameters,
-  getUplcProgram,
-} from "./utils/index.js";
+import { bigIntMax, fetchNetworkParameters } from "./utils/index.js";
 
 /**
  * Configuration of function to buy handle
@@ -144,18 +139,13 @@ const buy = async (
     uplcProgram = uplcProgram.withAlt(unoptimizedUplcProgram);
   }
 
-  // check deployed script cbor hex
-  if (cbor != bytesToHex(uplcProgram.toCbor()))
-    return Err(
-      new Error("Deployed script's cbor doesn't match with its parameter")
-    );
-
   /// start building tx
   const txBuilder = makeTxBuilder({ isMainnet });
   const changeAddress = makeAddress(changeBech32Address);
   const spareUtxos = cborUtxos.map(decodeTxInput);
   const listingUtxo = decodeTxInput(listingCborUtxo);
 
+  // <--- decode listing datum
   const listingDatum = listingUtxo.datum;
   if (!listingDatum) return Err(new Error("Listing UTxO datum not found"));
   const decodedResult = mayFail(() => decodeDatum(listingDatum, network));
@@ -292,12 +282,13 @@ const buyWithAuth = async (
     return Err(new Error("Authorizer's PubKey Hash is not correct"));
 
   // get uplc program
-  const uplcProgramResult = await getUplcProgram();
+  const uplcProgramResult = mayFail(() => decodeUplcProgramV2FromCbor(cbor));
   if (!uplcProgramResult.ok)
     return Err(
-      new Error(`Getting Uplc Program error: ${uplcProgramResult.error}`)
+      new Error(`Decoding Uplc Program error: ${uplcProgramResult.error}`)
     );
-  const uplcProgram = uplcProgramResult.data;
+  let uplcProgram = uplcProgramResult.data;
+
   if (unoptimizedCbor) {
     const unoptimizedUplcProgramResult = mayFail(() =>
       decodeUplcProgramV2FromCbor(unoptimizedCbor)
@@ -309,14 +300,8 @@ const buyWithAuth = async (
         )
       );
     const unoptimizedUplcProgram = unoptimizedUplcProgramResult.data;
-    uplcProgram.withAlt(unoptimizedUplcProgram);
+    uplcProgram = uplcProgram.withAlt(unoptimizedUplcProgram);
   }
-
-  // check deployed script cbor hex
-  if (cbor != bytesToHex(uplcProgram.toCbor()))
-    return Err(
-      new Error("Deployed script's cbor doesn't match with its parameter")
-    );
 
   /// start building tx
   const txBuilder = makeTxBuilder({ isMainnet });
@@ -324,6 +309,7 @@ const buyWithAuth = async (
   const spareUtxos = cborUtxos.map(decodeTxInput);
   const listingUtxo = decodeTxInput(listingCborUtxo);
 
+  // <--- decode listing datum
   const listingDatum = listingUtxo.datum;
   if (!listingDatum) return Err(new Error("Listing UTxO datum not found"));
   const decodedResult = mayFail(() => decodeDatum(listingDatum, network));
@@ -337,11 +323,11 @@ const buyWithAuth = async (
     makeTxOutput(
       makeAddress(refScriptAddress),
       makeValue(
-        0n,
+        1n,
         makeAssets([[HANDLE_POLICY_ID, [[refScriptDetail.handleHex, 1]]]])
       ),
       decodeTxOutputDatum(datumCbor),
-      decodeUplcProgramV2FromCbor(cbor)
+      uplcProgram
     )
   );
   txBuilder.refer(refInput);

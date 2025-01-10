@@ -25,7 +25,9 @@ import {
   makeConstrData,
   makeIntData,
   makeListData,
+  makeUplcDataValue,
   UplcData,
+  UplcValue,
 } from "@helios-lang/uplc";
 
 import { MarketplaceDatum, Parameters, Payout } from "./types.js";
@@ -160,6 +162,18 @@ const decodeDatum = (
   };
 };
 
+const makeSCParametersUplcValues = (parameters: Parameters): UplcValue[] => {
+  const { marketplaceAddress, authorizers } = parameters;
+  return [
+    makeUplcDataValue(buildAddressData(marketplaceAddress)),
+    makeUplcDataValue(
+      makeListData(
+        authorizers.map((authorizer) => makeByteArrayData(authorizer))
+      )
+    ),
+  ];
+};
+
 const buildSCParametersDatum = (
   marketplaceAddress: Address,
   authorizers: PubKeyHash[]
@@ -203,4 +217,5 @@ export {
   buildSCParametersDatum,
   decodeDatum,
   decodeSCParametersDatum,
+  makeSCParametersUplcValues,
 };

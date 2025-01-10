@@ -12,10 +12,16 @@ import {
   ScriptDetails,
   ScriptType,
 } from "@koralabs/kora-labs-common";
-import { HANDLE_POLICY_ID } from "constants/index.js";
-import { unoptimizedCompiledCode } from "contracts/plutus-v2/contract.js";
+import { Parameters } from "types.js";
 import { test } from "vitest";
 
+import {
+  AUTHORIZERS,
+  HANDLE_POLICY_ID,
+  MARKETPLACE_ADDRESS,
+} from "../src/constants/index.js";
+import { unoptimizedCompiledCode } from "../src/contracts/plutus-v2/contract.js";
+import { makeSCParametersUplcValues } from "../src/datum.js";
 import { deploy } from "../src/deploy.js";
 import { invariant } from "../src/helpers/index.js";
 
@@ -83,11 +89,21 @@ const setup = async () => {
   const txId = await fundWallet.submitTx(tx);
   emulator.tick(200);
   console.log("Deployed!!!");
-
   const referenceScriptUTxO = await emulator.getUtxo(makeTxOutputId(txId, 0));
+
+  /// build smart contract parameters
+  const parameters: Parameters = {
+    marketplaceAddress: MARKETPLACE_ADDRESS,
+    authorizers: AUTHORIZERS,
+  };
+  const parametersUplcValues = makeSCParametersUplcValues(parameters);
+
+  /// make unoptimized uplc program
   const upoptimizedUplcProgram = decodeUplcProgramV2FromCbor(
     unoptimizedCompiledCode
-  );
+  ).apply(parametersUplcValues);
+
+  /// make ref script detail
   const refScriptDetail: ScriptDetails = {
     handle: deployedHandleName,
     handleHex: `${AssetNameLabel.LBL_222}${Buffer.from(deployedHandleName, "utf8").toString("hex")}`,

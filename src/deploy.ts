@@ -41,8 +41,8 @@ import {
   optimizedCompiledCode,
   unoptimizedCompiledCode,
 } from "./contracts/plutus-v2/contract.js";
-import { buildSCParametersDatum } from "./datum.js";
-import { BuildTxError } from "./types.js";
+import { buildSCParametersDatum, makeSCParametersUplcValues } from "./datum.js";
+import { BuildTxError, Parameters } from "./types.js";
 import { fetchNetworkParameters, sleep } from "./utils/index.js";
 
 /**
@@ -92,10 +92,18 @@ const deploy = async (
   if (changeAddress.spendingCredential.kind != "PubKeyHash")
     return Err(new Error("Must be Base wallet to deploy"));
 
-  const uplcProgram = decodeUplcProgramV2FromCbor(optimizedCompiledCode);
+  const parameters: Parameters = {
+    marketplaceAddress: MARKETPLACE_ADDRESS,
+    authorizers: AUTHORIZERS,
+  };
+
+  const parametersUplcValues = makeSCParametersUplcValues(parameters);
+  const uplcProgram = decodeUplcProgramV2FromCbor(optimizedCompiledCode).apply(
+    parametersUplcValues
+  );
   const unoptimizedUplcProgram = decodeUplcProgramV2FromCbor(
     unoptimizedCompiledCode
-  );
+  ).apply(parametersUplcValues);
 
   const lockerScriptAddress = makeAddress(
     network == "mainnet",
@@ -128,8 +136,8 @@ const deploy = async (
     lockerScriptAddress,
     deployedTxOutputValue,
     buildSCParametersDatum(
-      makeAddress(MARKETPLACE_ADDRESS),
-      AUTHORIZERS.map((authorizer) => makePubKeyHash(authorizer))
+      makeAddress(parameters.marketplaceAddress),
+      parameters.authorizers.map((authorizer) => makePubKeyHash(authorizer))
     ),
     uplcProgram
   );

@@ -1,4 +1,3 @@
-import { bytesToHex } from "@helios-lang/codec-utils";
 import {
   decodeTxInput,
   makeAddress,
@@ -8,6 +7,7 @@ import {
   makeValue,
 } from "@helios-lang/ledger";
 import { makeTxBuilder, NetworkName } from "@helios-lang/tx-utils";
+import { decodeUplcProgramV2FromCbor } from "@helios-lang/uplc";
 import { ScriptDetails } from "@koralabs/kora-labs-common";
 import { Err, Ok, Result } from "ts-res";
 
@@ -16,7 +16,7 @@ import { buildDatum, decodeSCParametersDatum } from "./datum.js";
 import { deployedScripts } from "./deployed/index.js";
 import { mayFail, mayFailAsync } from "./helpers/index.js";
 import { Payout, SuccessResult } from "./types.js";
-import { fetchNetworkParameters, getUplcProgram } from "./utils/index.js";
+import { fetchNetworkParameters } from "./utils/index.js";
 
 /**
  * Configuration of function to list handle
@@ -85,18 +85,12 @@ const list = async (
   // const parameters = parametersResult.data;
 
   // get uplc program
-  const uplcProgramResult = await getUplcProgram();
+  const uplcProgramResult = mayFail(() => decodeUplcProgramV2FromCbor(cbor));
   if (!uplcProgramResult.ok)
     return Err(
-      new Error(`Getting Uplc Program error: ${uplcProgramResult.error}`)
+      new Error(`Decoding Uplc Program error: ${uplcProgramResult.error}`)
     );
   const uplcProgram = uplcProgramResult.data;
-
-  // check deployed script cbor hex
-  if (cbor != bytesToHex(uplcProgram.toCbor()))
-    return Err(
-      new Error("Deployed script's cbor doesn't match with its parameter")
-    );
 
   /// start building tx
   const txBuilder = makeTxBuilder({ isMainnet });
