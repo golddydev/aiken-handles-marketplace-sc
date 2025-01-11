@@ -1,9 +1,10 @@
 import { bytesToHex } from "@helios-lang/codec-utils";
 import { makeAddress } from "@helios-lang/ledger";
-import { getBlockfrostApi } from "helpers/index.js";
 
 import { loadConfig } from "../../src/config.js";
+import { AUTHORIZERS, MARKETPLACE_ADDRESS } from "../../src/constants/index.js";
 import { deploy, DeployConfig } from "../../src/deploy.js";
+import { getBlockfrostApi } from "../../src/helpers/index.js";
 import { getSeed } from "../../src/utils/index.js";
 import program from "../cli.js";
 
@@ -25,6 +26,10 @@ const deployCommand = program
       handleName,
       changeBech32Address: bech32Address,
       cborUtxos,
+      parameters: {
+        marketplaceAddress: MARKETPLACE_ADDRESS,
+        authorizers: AUTHORIZERS,
+      },
       seed,
     };
 

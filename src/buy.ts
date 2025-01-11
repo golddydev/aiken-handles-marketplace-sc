@@ -9,9 +9,9 @@ import {
   makeTxOutputId,
   makeValue,
 } from "@helios-lang/ledger";
-import { makeTxBuilder } from "@helios-lang/tx-utils";
+import { makeTxBuilder, NetworkName } from "@helios-lang/tx-utils";
 import { decodeUplcProgramV2FromCbor } from "@helios-lang/uplc";
-import { Network, ScriptDetails } from "@koralabs/kora-labs-common";
+import { ScriptDetails } from "@koralabs/kora-labs-common";
 import { Err, Result } from "ts-res";
 
 import { HANDLE_POLICY_ID, MIN_LOVELACE } from "./constants/index.js";
@@ -30,7 +30,7 @@ import { bigIntMax, fetchNetworkParameters } from "./utils/index.js";
  * Configuration of function to buy handle
  * @interface
  * @typedef {object} BuyConfig
- * @property {string} changeBech32Address Change address of wallet who is performing `list`
+ * @property {string} changeBech32Address Change address of wallet who is performing `buy`
  * @property {string[]} cborUtxos UTxOs (cbor format) of wallet
  * @property {string | undefined | null} collateralCborUtxo Collateral UTxO. Can be null, then we will select one in function
  * @property {string} handleHex Handle name's hex format (asset name label is also included)
@@ -50,7 +50,7 @@ interface BuyConfig {
  * Configuration of function to buy handle with one of authorizers
  * @interface
  * @typedef {object} BuyWithAuthConfig
- * @property {string} changeBech32Address Change address of wallet who is performing `list`
+ * @property {string} changeBech32Address Change address of wallet who is performing `buy with auth`
  * @property {string[]} cborUtxos UTxOs (cbor format) of wallet
  * @property {string | undefined | null} collateralCborUtxo Collateral CBOR UTxO. Can be null, then we will select one in function
  * @property {string} handleHex Handle name's hex format (asset name label is also included)
@@ -71,19 +71,20 @@ interface BuyWithAuthConfig {
 /**
  * Buy Handle on marketplace
  * @param {BuyConfig} config
- * @param {Network} network
+ * @param {NetworkName} network
  * @returns {Promise<Result<SuccessResult,  Error | BuildTxError>>}
  */
 
 const buy = async (
   config: BuyConfig,
-  network: Network
+  network: NetworkName
 ): Promise<Result<SuccessResult, Error | BuildTxError>> => {
   const isMainnet = network === "mainnet";
   const {
     changeBech32Address,
     cborUtxos,
     listingCborUtxo,
+    collateralCborUtxo,
     customRefScriptDetail,
   } = config;
 
@@ -214,6 +215,12 @@ const buy = async (
   handleBuyOutput.correctLovelace(networkParameters);
   txBuilder.addOutput(handleBuyOutput);
 
+  // <--- add collateral if passed
+  if (collateralCborUtxo) {
+    const collateralUtxo = decodeTxInput(collateralCborUtxo);
+    txBuilder.addCollateral(collateralUtxo);
+  }
+
   /// build tx
   const txResult = await mayFailTransaction(
     txBuilder,
@@ -227,12 +234,12 @@ const buy = async (
 /**
  * Buy Handle on marketplace with one of authorizers
  * @param {BuyWithAuthConfig} config
- * @param {Network} network
+ * @param {NetworkName} network
  * @returns {Promise<Result<SuccessResult, Error | BuildTxError>>}
  */
 const buyWithAuth = async (
   config: BuyWithAuthConfig,
-  network: Network
+  network: NetworkName
 ): Promise<Result<SuccessResult, Error | BuildTxError>> => {
   const isMainnet = network === "mainnet";
   const {
@@ -240,6 +247,7 @@ const buyWithAuth = async (
     cborUtxos,
     listingCborUtxo,
     authorizerPubKeyHash,
+    collateralCborUtxo,
     customRefScriptDetail,
   } = config;
 
@@ -368,6 +376,12 @@ const buyWithAuth = async (
 
   // <--- add authorizer as signer
   txBuilder.addSigners(makePubKeyHash(authorizerPubKeyHash));
+
+  // <--- add collateral if passed
+  if (collateralCborUtxo) {
+    const collateralUtxo = decodeTxInput(collateralCborUtxo);
+    txBuilder.addCollateral(collateralUtxo);
+  }
 
   /// build tx
   const txResult = await mayFailTransaction(

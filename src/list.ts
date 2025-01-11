@@ -39,7 +39,7 @@ interface ListConfig {
 /**
  * List Handle to marketplace
  * @param {ListConfig} config
- * @param {Network} network
+ * @param {NetworkName} network
  * @returns {Promise<Result<SuccessResult, Error>>}
  */
 const list = async (

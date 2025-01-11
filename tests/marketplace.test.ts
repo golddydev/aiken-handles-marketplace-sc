@@ -6,6 +6,7 @@ import { assert, describe } from "vitest";
 import { buy, BuyConfig } from "../src/buy.js";
 import { invariant } from "../src/helpers/index.js";
 import { list, ListConfig } from "../src/list.js";
+import { withdraw, WithdrawConfig } from "../src/withdraw.js";
 import { myTest } from "./setup.js";
 
 describe.sequential("Koralab Marketplace smart contract test", () => {
@@ -18,7 +19,7 @@ describe.sequential("Koralab Marketplace smart contract test", () => {
       testHandleName,
       network,
       refScriptDetail,
-      txIds,
+      txOutputIds,
     }) => {
       const userUtxos = await emulator.getUtxos(user1Wallet.address);
       const userCborUtxos = userUtxos.map((utxo) =>
@@ -47,7 +48,7 @@ describe.sequential("Koralab Marketplace smart contract test", () => {
       listTx.addSignatures(await user1Wallet.signTx(listTx));
       const txId = await user1Wallet.submitTx(listTx);
       emulator.tick(200);
-      txIds.listingTxId = txId;
+      txOutputIds.listingTxOutputId = makeTxOutputId(txId, 0);
     }
   );
 
@@ -62,14 +63,12 @@ describe.sequential("Koralab Marketplace smart contract test", () => {
       testHandleName,
       network,
       refScriptDetail,
-      txIds,
+      txOutputIds,
     }) => {
-      const { listingTxId } = txIds;
-      invariant(listingTxId, "Listing is not happened");
+      const { listingTxOutputId } = txOutputIds;
+      invariant(listingTxOutputId, "Listing is not happened");
 
-      const listingUtxo = await emulator.getUtxo(
-        makeTxOutputId(listingTxId, 0)
-      );
+      const listingUtxo = await emulator.getUtxo(listingTxOutputId);
       const userUtxos = await emulator.getUtxos(user2Wallet.address);
       const userCborUtxos = userUtxos.map((utxo) =>
         bytesToHex(utxo.toCbor(true))
@@ -111,6 +110,8 @@ describe.sequential("Koralab Marketplace smart contract test", () => {
           user3Output.value.lovelace == 10_000_000n,
         "User_3 Output is not valid"
       );
+
+      txOutputIds.listingTxOutputId = undefined;
     }
   );
 
@@ -123,7 +124,7 @@ describe.sequential("Koralab Marketplace smart contract test", () => {
       testHandleName,
       network,
       refScriptDetail,
-      txIds,
+      txOutputIds,
     }) => {
       const userUtxos = await emulator.getUtxos(user2Wallet.address);
       const userCborUtxos = userUtxos.map((utxo) =>
@@ -152,7 +153,7 @@ describe.sequential("Koralab Marketplace smart contract test", () => {
       listTx.addSignatures(await user2Wallet.signTx(listTx));
       const txId = await user2Wallet.submitTx(listTx);
       emulator.tick(200);
-      txIds.listingTxId = txId;
+      txOutputIds.listingTxOutputId = makeTxOutputId(txId, 0);
     }
   );
 
@@ -164,14 +165,12 @@ describe.sequential("Koralab Marketplace smart contract test", () => {
       testHandleName,
       network,
       refScriptDetail,
-      txIds,
+      txOutputIds,
     }) => {
-      const { listingTxId } = txIds;
-      invariant(listingTxId, "Listing is not happened");
+      const { listingTxOutputId } = txOutputIds;
+      invariant(listingTxOutputId, "Listing is not happened");
 
-      const listingUtxo = await emulator.getUtxo(
-        makeTxOutputId(listingTxId, 0)
-      );
+      const listingUtxo = await emulator.getUtxo(listingTxOutputId);
       const userUtxos = await emulator.getUtxos(user4Wallet.address);
       const userCborUtxos = userUtxos.map((utxo) =>
         bytesToHex(utxo.toCbor(true))
@@ -186,6 +185,41 @@ describe.sequential("Koralab Marketplace smart contract test", () => {
       const buyTxResult = await buy(buyConfig, network);
       invariant(!buyTxResult.ok);
       console.info("Error:", buyTxResult.error.message);
+    }
+  );
+
+  myTest(
+    "user_2 withdraw <test> handle - (that is too expensive to buy)",
+    async ({
+      emulator,
+      user2Wallet,
+      testHandleName,
+      network,
+      refScriptDetail,
+      txOutputIds,
+    }) => {
+      const { listingTxOutputId } = txOutputIds;
+      invariant(listingTxOutputId, "Listing is not happened");
+
+      const listingUtxo = await emulator.getUtxo(listingTxOutputId);
+      const userUtxos = await emulator.getUtxos(user2Wallet.address);
+      const userCborUtxos = userUtxos.map((utxo) =>
+        bytesToHex(utxo.toCbor(true))
+      );
+      const withdrawConfig: WithdrawConfig = {
+        cborUtxos: userCborUtxos,
+        changeBech32Address: user2Wallet.address.toBech32(),
+        handleHex: `${AssetNameLabel.LBL_222}${Buffer.from(testHandleName, "utf8").toString("hex")}`,
+        listingCborUtxo: bytesToHex(listingUtxo.toCbor(true)),
+        customRefScriptDetail: refScriptDetail,
+      };
+      const withdrawTxResult = await withdraw(withdrawConfig, network);
+      invariant(withdrawTxResult.ok, "Withdraw Tx Failed");
+
+      const { tx: withdrawTx } = withdrawTxResult.data;
+      withdrawTx.addSignatures(await user2Wallet.signTx(withdrawTx));
+      emulator.tick(200);
+      txOutputIds.listingTxOutputId = undefined;
     }
   );
 });

@@ -2,10 +2,14 @@ import { bytesToHex } from "@helios-lang/codec-utils";
 import {
   makeAddress,
   makeAssets,
-  makeDummyTxId,
   makeTxOutputId,
+  TxOutputId,
 } from "@helios-lang/ledger";
-import { makeEmulator, NetworkName } from "@helios-lang/tx-utils";
+import {
+  makeEmulator,
+  makeRandomBip32PrivateKey,
+  NetworkName,
+} from "@helios-lang/tx-utils";
 import { decodeUplcProgramV2FromCbor } from "@helios-lang/uplc";
 import {
   AssetNameLabel,
@@ -15,11 +19,7 @@ import {
 import { Parameters } from "types.js";
 import { test } from "vitest";
 
-import {
-  AUTHORIZERS,
-  HANDLE_POLICY_ID,
-  MARKETPLACE_ADDRESS,
-} from "../src/constants/index.js";
+import { HANDLE_POLICY_ID } from "../src/constants/index.js";
 import { unoptimizedCompiledCode } from "../src/contracts/plutus-v2/contract.js";
 import { makeSCParametersUplcValues } from "../src/datum.js";
 import { deploy } from "../src/deploy.js";
@@ -30,6 +30,21 @@ const ACCOUNT_LOVELACE = 500_000_000n;
 
 const setup = async () => {
   const emulator = makeEmulator();
+
+  const marketplaceAddress = makeAddress(
+    false,
+    makeRandomBip32PrivateKey().derivePubKey().hash()
+  );
+  const authorizersPrivateKeys = Array.from({ length: 2 }, () =>
+    makeRandomBip32PrivateKey()
+  );
+  const authorizersPubKeyHashes = authorizersPrivateKeys.map((privateKey) =>
+    privateKey.derivePubKey().hash()
+  );
+  const parameters: Parameters = {
+    marketplaceAddress: marketplaceAddress.toBech32(),
+    authorizers: authorizersPubKeyHashes.map((hashes) => hashes.toHex()),
+  };
 
   const deployedHandleName = "mp_contract";
   const testHandleName = "test";
@@ -76,6 +91,10 @@ const setup = async () => {
       changeBech32Address: fundWallet.address.toBech32(),
       handleName: deployedHandleName,
       cborUtxos: fundWalletUtxos.map((utxo) => bytesToHex(utxo.toCbor(true))),
+      parameters: {
+        marketplaceAddress: marketplaceAddress.toBech32(),
+        authorizers: [],
+      },
     },
     network
   );
@@ -93,10 +112,6 @@ const setup = async () => {
   const referenceScriptUTxO = await emulator.getUtxo(makeTxOutputId(txId, 0));
 
   /// build smart contract parameters
-  const parameters: Parameters = {
-    marketplaceAddress: MARKETPLACE_ADDRESS,
-    authorizers: AUTHORIZERS,
-  };
   const parametersUplcValues = makeSCParametersUplcValues(parameters);
 
   /// make unoptimized uplc program
@@ -132,8 +147,8 @@ const setup = async () => {
     user3Wallet,
     user4Wallet,
     network,
-    txIds: {
-      listingTxId: makeDummyTxId(),
+    txOutputIds: {
+      listingTxOutputId: undefined as TxOutputId | undefined,
     },
   };
 };

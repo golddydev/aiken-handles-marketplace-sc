@@ -32,11 +32,7 @@ import fs from "fs/promises";
 import { mayFailAsync } from "helpers/index.js";
 import { Err, Ok, Result } from "ts-res";
 
-import {
-  AUTHORIZERS,
-  HANDLE_POLICY_ID,
-  MARKETPLACE_ADDRESS,
-} from "./constants/index.js";
+import { HANDLE_POLICY_ID } from "./constants/index.js";
 import {
   optimizedCompiledCode,
   unoptimizedCompiledCode,
@@ -52,12 +48,14 @@ import { fetchNetworkParameters, sleep } from "./utils/index.js";
  * @property {string} handleName Ada Handle Name to deploy with SC
  * @property {string} changeBech32Address Change address of wallet who is performing `deploy`
  * @property {string[]} cborUtxos UTxOs (cbor format) of wallet
+ * @property {Parameters} parameters Parameters of Smart contract
  * @property {string | undefined} seed Seed phrase of wallet to deploy SC
  */
 interface DeployConfig {
   handleName: string;
   changeBech32Address: string;
   cborUtxos: string[];
+  parameters: Parameters;
   seed?: string | undefined;
 }
 
@@ -76,7 +74,8 @@ const deploy = async (
 ): Promise<Result<void | Tx, Error | BuildTxError>> => {
   console.log(`Deploying to ${network} network...`);
 
-  const { handleName, changeBech32Address, seed, cborUtxos } = config;
+  const { handleName, changeBech32Address, cborUtxos, parameters, seed } =
+    config;
   const txBuilder = makeTxBuilder({ isMainnet: IS_PRODUCTION });
 
   // fetch network parameters
@@ -91,11 +90,6 @@ const deploy = async (
 
   if (changeAddress.spendingCredential.kind != "PubKeyHash")
     return Err(new Error("Must be Base wallet to deploy"));
-
-  const parameters: Parameters = {
-    marketplaceAddress: MARKETPLACE_ADDRESS,
-    authorizers: AUTHORIZERS,
-  };
 
   const parametersUplcValues = makeSCParametersUplcValues(parameters);
   const uplcProgram = decodeUplcProgramV2FromCbor(optimizedCompiledCode).apply(
