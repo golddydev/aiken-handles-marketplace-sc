@@ -5,8 +5,9 @@
   "main": "index.js",
   "type": "module",
   "scripts": {
-    "lint": "eslint \"**/{src,test}/**/*.{ts,mjs}\"",
-    "ex": "tsx ./src/ex.ts",
+    "build": "rm -rf ./dist && npx tsc && rm -rf ./dist/tests",
+    "lint": "concurrently \"aiken fmt --check\" \"npx eslint '**/{src,test}/**/*.{ts,mjs}' --max-warnings=0\"",
+    "test:aiken": "concurrently \"aiken fmt --check\" \"aiken check\"",
     "test": "vitest run"
   },
   "bin": {
@@ -35,6 +36,7 @@
   "devDependencies": {
     "@eslint/js": "^9.17.0",
     "@types/node": "^22.10.2",
+    "concurrently": "^9.1.2",
     "eslint": "^9.17.0",
     "eslint-config-prettier": "^9.1.0",
     "globals": "^15.14.0",
