@@ -63,5 +63,11 @@ pub fn can_withdraw_or_update(
   datum: MarketplaceDatum,
 ) -> Bool {
   let Transaction { extra_signatories, .. } = transaction
-  list.has(extra_signatories, datum.owner)
+  when list.has(extra_signatories, datum.owner) is {
+    True -> True
+    False -> {
+      trace @"must be signed by owner"
+      False
+    }
+  }
 }
