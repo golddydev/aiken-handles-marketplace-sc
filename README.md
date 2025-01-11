@@ -1,10 +1,12 @@
-# aiken-handles-marketplace-sc
+# marketplace-sc-old
 
 Write validators in the `validators` folder, and supporting functions in the `lib` folder using `.ak` as a file extension.
 
-```aiken
-validator my_first_validator {
-  spend(_datum: Option<Data>, _redeemer: Data, _output_reference: Data, _context: Data) {
+For example, as `validators/always_true.ak`
+
+```gleam
+validator {
+  fn spend(_datum: Data, _redeemer: Data, _context: Data) -> Bool {
     True
   }
 }
@@ -16,25 +18,13 @@ validator my_first_validator {
 aiken build
 ```
 
-## Configuring
-
-**aiken.toml**
-```toml
-[config.default]
-network_id = 41
-```
-
-Or, alternatively, write conditional environment modules under `env`.
-
 ## Testing
 
 You can write tests in any module using the `test` keyword. For example:
 
-```aiken
-use config
-
+```gleam
 test foo() {
-  config.network_id + 1 == 42
+  1 + 1 == 2
 }
 ```
 

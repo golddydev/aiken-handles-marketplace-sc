@@ -1,7 +1,8 @@
 use aiken/builtin.{tail_list}
-use aiken/transaction.{Datum, NoDatum, Output}
-use aiken/transaction/credential.{Address}
-use common/utils.{must_have_only_lovelace, split_first_and_rest}
+use aiken/collection/dict
+use cardano/assets.{ada_policy_id}
+use cardano/transaction.{Datum, NoDatum, Output}
+use marketplace/constants.{marketplace_addr}
 use marketplace/types.{Payout}
 
 /// Find the outputs that match the list of payouts.
@@ -63,26 +64,31 @@ fn skip_10_items(some_list: List<a>) -> List<a> {
 /// to compare to.
 pub fn check_marketplace_payout(
   output: Output,
-  marketplace_address: Address,
   marketplace_fee: Int,
-  marketplace_output_datum_tag: Datum,
+  datum_tag: Datum,
 ) -> Bool {
-  let Output { address: output_address, value: output_value, datum, .. } =
-    output
+  let Output { address: output_address, value, datum, .. } = output
 
-  // check marketplace output's datum is tagged
-  expect datum == marketplace_output_datum_tag
+  let datum_check = datum == datum_tag
 
   // Match hardcoded marketplace address
-  expect output_address == marketplace_address
+  let address_check = output_address == marketplace_addr()
+
+  expect [Pair(policy, tokens)] =
+    value
+      |> assets.to_dict
+      |> dict.to_pairs
+
+  expect [Pair(_, quantity)] = dict.to_pairs(tokens)
+
+  let policy_check = policy == ada_policy_id
 
   // Output value quantity must equal the marketplace fee
   // this prevents people from not paying a fee by submitting
   // transactions not constructed by Koralabs.
-  let quantity = must_have_only_lovelace(output_value)
-  expect quantity >= marketplace_fee
+  let quantity_check = quantity >= marketplace_fee
 
-  True
+  datum_check && address_check && quantity_check && policy_check
 }
 
 /// Check that payouts and payout outputs
@@ -96,29 +102,31 @@ pub fn check_payouts(
   payouts: List<Payout>,
   datum_tag: Datum,
 ) -> Int {
-  let (first_output, rest_outputs) =
-    split_first_and_rest(outputs, @"outputs are empty")
-  let Output { address: output_address, value: output_value, datum, .. } =
-    first_output
+  expect [first_output, ..rest_outputs] = outputs
 
-  // check first output's datum is tagged
+  let Output { address: output_address, value, datum, .. } = first_output
+
   expect datum == datum_tag
+  expect [payout, ..rest_payouts] = payouts
 
-  let (first_payout, rest_payouts) =
-    split_first_and_rest(payouts, @"payouts are empty")
-  let Payout { address: payout_address, amount_lovelace } = first_payout
+  let Payout { address: payout_address, amount_lovelace } = payout
 
   // The `Output` address must match
   // the address specified in the corresponding
   // payout from the datum.
   expect payout_address == output_address
+  expect [Pair(policy, tokens)] =
+    value
+      |> assets.to_dict
+      |> dict.to_pairs
 
+  expect [Pair(_, quantity)] = dict.to_pairs(tokens)
+
+  expect policy == ada_policy_id
   // The quantity in the output must equal
   // the amount specified in the corresponding
   // payout from the datum.
-  let quantity = must_have_only_lovelace(output_value)
   expect quantity >= amount_lovelace && amount_lovelace > 0
-
   let rest_payouts_amount =
     when rest_payouts is {
       // the base case
@@ -134,29 +142,31 @@ pub fn check_payouts(
 }
 
 pub fn check_payouts_aux(outputs: List<Output>, payouts: List<Payout>) -> Int {
-  let (first_output, rest_outputs) =
-    split_first_and_rest(outputs, @"aux outputs are empty")
-  let Output { address: output_address, value: output_value, datum, .. } =
-    first_output
+  expect [first_output, ..rest_outputs] = outputs
 
-  // check reset output's datum is none
+  let Output { address: output_address, value, datum, .. } = first_output
+
   expect datum == NoDatum
+  expect [payout, ..rest_payouts] = payouts
 
-  let (first_payout, rest_payouts) =
-    split_first_and_rest(payouts, @"aux payouts are empty")
-  let Payout { address: payout_address, amount_lovelace } = first_payout
+  let Payout { address: payout_address, amount_lovelace } = payout
 
   // The `Output` address must match
   // the address specified in the corresponding
   // payout from the datum.
   expect payout_address == output_address
+  expect [Pair(policy, tokens)] =
+    value
+      |> assets.to_dict
+      |> dict.to_pairs
 
+  expect [Pair(_, quantity)] = dict.to_pairs(tokens)
+
+  expect policy == ada_policy_id
   // The quantity in the output must equal
   // the amount specified in the corresponding
   // payout from the datum.
-  let quantity = must_have_only_lovelace(output_value)
   expect quantity >= amount_lovelace && amount_lovelace > 0
-
   let rest_payouts_amount =
     when rest_payouts is {
       // the base case

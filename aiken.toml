@@ -1,18 +1,16 @@
-name = "golddydev/aiken-handles-marketplace-sc"
+name = "golddyev/marketplace-sc-old"
 version = "0.0.0"
-compiler = "v1.1.9"
-plutus = "v3"
+compiler = "v1.0.29-alpha"
+plutus = "v2"
 license = "Apache-2.0"
-description = "Aiken contracts for project 'golddydev/aiken-handles-marketplace-sc'"
+description = "Aiken contracts for project 'golddyev/marketplace-sc-old'"
 
 [repository]
-user = "golddydev"
-project = "aiken-handles-marketplace-sc"
+user = "golddyev"
+project = "marketplace-sc-old"
 platform = "github"
 
 [[dependencies]]
 name = "aiken-lang/stdlib"
-version = "v2.2.0"
+version = "1.9.0"
 source = "github"
-
-[config]
