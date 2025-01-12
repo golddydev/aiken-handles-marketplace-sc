@@ -24,7 +24,6 @@ import {
 import { decodeUplcProgramV2FromCbor } from "@helios-lang/uplc";
 import {
   AssetNameLabel,
-  IS_PRODUCTION,
   ScriptDetails,
   ScriptType,
 } from "@koralabs/kora-labs-common";
@@ -74,9 +73,10 @@ const deploy = async (
 ): Promise<Result<void | Tx, Error | BuildTxError>> => {
   console.log(`Deploying to ${network} network...`);
 
+  const isMainnet = network == "mainnet";
   const { handleName, changeBech32Address, cborUtxos, parameters, seed } =
     config;
-  const txBuilder = makeTxBuilder({ isMainnet: IS_PRODUCTION });
+  const txBuilder = makeTxBuilder({ isMainnet });
 
   // fetch network parameters
   const networkParametersResult = await fetchNetworkParameters(network);
@@ -99,16 +99,16 @@ const deploy = async (
     unoptimizedCompiledCode
   ).apply(parametersUplcValues);
 
+  const lockerScript = makeAllScript([
+    makeAfterScript(networkParameterHelper.timeToSlot(Date.now())),
+    makeSigScript(changeAddress.spendingCredential.toHex()),
+  ]);
+
+  console.log({ lockerScript: bytesToHex(lockerScript.toCbor()) });
+
   const lockerScriptAddress = makeAddress(
-    network == "mainnet",
-    makePubKeyHash(
-      hashNativeScript(
-        makeAllScript([
-          makeAfterScript(networkParameterHelper.timeToSlot(Date.now())),
-          makeSigScript(changeAddress.spendingCredential.toHex()),
-        ])
-      )
-    )
+    isMainnet,
+    makePubKeyHash(hashNativeScript(lockerScript))
   );
 
   // deployed smart contract output
