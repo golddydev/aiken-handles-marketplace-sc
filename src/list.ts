@@ -96,24 +96,25 @@ const list = async (
   const txBuilder = makeTxBuilder({ isMainnet });
   const changeAddress = makeAddress(changeBech32Address);
   const spareUtxos = cborUtxos.map(decodeTxInput);
-
-  // take listing handle asset from spareUtxos
-  const listingHandleValue = makeValue(
+  const handleValue = makeValue(
     0n,
     makeAssets([[HANDLE_POLICY_ID, [[handleHex, 1n]]]])
   );
+
+  // take listing handle asset from spareUtxos
   const handleInputIndex = spareUtxos.findIndex((utxo) =>
-    utxo.value.isGreaterOrEqual(listingHandleValue)
+    utxo.value.isGreaterOrEqual(handleValue)
   );
   if (handleInputIndex < 0)
     return Err(new Error(`You don't have listing handle`));
   const handleInput = spareUtxos.splice(handleInputIndex, 1)[0];
+
   // <--- spend listing handle input
   txBuilder.spendUnsafe(handleInput);
 
-  /// build datum
+  // build datum
   if (changeAddress.spendingCredential.kind != "PubKeyHash")
-    return Err(new Error("Change Address is validator address"));
+    return Err(new Error("Must be Base Address to perform list"));
   const ownerPubKeyHash = changeAddress.spendingCredential;
   const listingDatumResult = mayFail(() =>
     buildDatum({ payouts, owner: ownerPubKeyHash.toHex() })
@@ -128,7 +129,7 @@ const list = async (
       makeValidatorHash(uplcProgram.hash())
       // changeAddress.stakingCredential, // when listed NFT needs to be under user's staking credential
     ),
-    listingHandleValue,
+    handleValue,
     listingDatumResult.data
   );
   listingHandleOutput.correctLovelace(networkParameters);

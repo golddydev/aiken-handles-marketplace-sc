@@ -6,6 +6,7 @@ import {
   TxOutputId,
 } from "@helios-lang/ledger";
 import {
+  Bip32PrivateKey,
   makeEmulator,
   makeRandomBip32PrivateKey,
   NetworkName,
@@ -16,7 +17,6 @@ import {
   ScriptDetails,
   ScriptType,
 } from "@koralabs/kora-labs-common";
-import { Parameters } from "types.js";
 import { test } from "vitest";
 
 import { HANDLE_POLICY_ID } from "../src/constants/index.js";
@@ -24,6 +24,7 @@ import { unoptimizedCompiledCode } from "../src/contracts/plutus-v2/contract.js"
 import { makeSCParametersUplcValues } from "../src/datum.js";
 import { deploy } from "../src/deploy.js";
 import { invariant } from "../src/helpers/index.js";
+import { Parameters } from "../src/types.js";
 
 const network: NetworkName = "preview";
 const ACCOUNT_LOVELACE = 500_000_000n;
@@ -35,8 +36,9 @@ const setup = async () => {
     false,
     makeRandomBip32PrivateKey().derivePubKey().hash()
   );
-  const authorizersPrivateKeys = Array.from({ length: 2 }, () =>
-    makeRandomBip32PrivateKey()
+  const authorizersPrivateKeys: Bip32PrivateKey[] = Array.from(
+    { length: 2 },
+    () => makeRandomBip32PrivateKey()
   );
   const authorizersPubKeyHashes = authorizersPrivateKeys.map((privateKey) =>
     privateKey.derivePubKey().hash()
@@ -91,10 +93,7 @@ const setup = async () => {
       changeBech32Address: fundWallet.address.toBech32(),
       handleName: deployedHandleName,
       cborUtxos: fundWalletUtxos.map((utxo) => bytesToHex(utxo.toCbor(true))),
-      parameters: {
-        marketplaceAddress: marketplaceAddress.toBech32(),
-        authorizers: [],
-      },
+      parameters,
     },
     network
   );
@@ -137,6 +136,7 @@ const setup = async () => {
   return {
     emulator,
     parameters,
+    authorizersPrivateKeys,
     deployedHandleName,
     testHandleName,
     referenceScriptUTxO,

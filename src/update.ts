@@ -6,6 +6,7 @@ import {
   makeTxInput,
   makeTxOutput,
   makeTxOutputId,
+  makeValidatorHash,
   makeValue,
 } from "@helios-lang/ledger";
 import { makeTxBuilder, NetworkName } from "@helios-lang/tx-utils";
@@ -14,16 +15,17 @@ import { ScriptDetails } from "@koralabs/kora-labs-common";
 import { Err, Result } from "ts-res";
 
 import { HANDLE_POLICY_ID } from "./constants/index.js";
-import { decodeDatum } from "./datum.js";
+import { buildDatum, decodeDatum } from "./datum.js";
 import { deployedScripts } from "./deployed/index.js";
 import { mayFail, mayFailTransaction } from "./helpers/index.js";
 import { WithdrawOrUpdate } from "./redeemer.js";
-import { BuildTxError, SuccessResult } from "./types.js";
+import { BuildTxError, Payout, SuccessResult } from "./types.js";
+import { fetchNetworkParameters } from "./utils/contract.js";
 
 /**
  * Configuration of function to withdraw handle
  * @interface
- * @typedef {object} WithdrawConfig
+ * @typedef {object} UpdateConfig
  * @property {string} changeBech32Address Change address of wallet who is performing `withdraw`
  * @property {string[]} cborUtxos UTxOs (cbor format) of wallet
  * @property {string | undefined | null} collateralCborUtxo Collateral UTxO. Can be null, then we will select one in function
@@ -31,24 +33,25 @@ import { BuildTxError, SuccessResult } from "./types.js";
  * @property {string} listingCborUtxo UTxO (cbor format) where this handle is listed
  * @property {ScriptDetails | undefined} customRefScriptDetail Custom Reference Script Detail
  */
-interface WithdrawConfig {
+interface UpdateConfig {
   changeBech32Address: string;
   cborUtxos: string[];
   collateralCborUtxo?: string | null;
   handleHex: string;
   listingCborUtxo: string;
+  newPayouts: Payout[];
   customRefScriptDetail?: ScriptDetails;
 }
 
 /**
  * Withdraw listed Handle on marketplace
- * @param {WithdrawConfig} config
+ * @param {UpdateConfig} config
  * @param {NetworkName} network
  * @returns {Promise<Result<SuccessResult,  Error | BuildTxError>>}
  */
 
-const withdraw = async (
-  config: WithdrawConfig,
+const update = async (
+  config: UpdateConfig,
   network: NetworkName
 ): Promise<Result<SuccessResult, Error | BuildTxError>> => {
   const isMainnet = network === "mainnet";
@@ -58,6 +61,7 @@ const withdraw = async (
     collateralCborUtxo,
     listingCborUtxo,
     handleHex,
+    newPayouts,
     customRefScriptDetail,
   } = config;
 
@@ -74,6 +78,12 @@ const withdraw = async (
   if (!datumCbor) return Err(new Error("Deploy script's datum cbor is empty"));
   if (!refScriptUtxo || !refScriptAddress)
     return Err(new Error("Deployed script UTxO is not defined"));
+
+  // fetch network parameter
+  const networkParametersResult = await fetchNetworkParameters(network);
+  if (!networkParametersResult.ok)
+    return Err(new Error("Failed to fetch network parameter"));
+  const networkParameters = networkParametersResult.data;
 
   // get uplc program
   const uplcProgramResult = mayFail(() => decodeUplcProgramV2FromCbor(cbor));
@@ -148,6 +158,29 @@ const withdraw = async (
   // <--- spend listing utxo
   txBuilder.spendUnsafe([listingUtxo], redeemerResult.data);
 
+  // build new datum
+  const ownerPubKeyHash = changeAddress.spendingCredential;
+  const newListingDatumResult = mayFail(() =>
+    buildDatum({ payouts: newPayouts, owner: ownerPubKeyHash.toHex() })
+  );
+  if (!newListingDatumResult.ok)
+    return Err(
+      new Error(`Building Datum error: ${newListingDatumResult.error}`)
+    );
+
+  // <--- new listing handle output
+  const newListingHandleOutput = makeTxOutput(
+    makeAddress(
+      isMainnet,
+      makeValidatorHash(uplcProgram.hash())
+      // changeAddress.stakingCredential, // when listed NFT needs to be under user's staking credential
+    ),
+    handleValue,
+    newListingDatumResult.data
+  );
+  newListingHandleOutput.correctLovelace(networkParameters);
+  txBuilder.addOutput(newListingHandleOutput);
+
   // <--- add owner as signer
   txBuilder.addSigners(changeAddress.spendingCredential);
 
@@ -167,5 +200,5 @@ const withdraw = async (
   return txResult;
 };
 
-export { withdraw };
-export type { WithdrawConfig };
+export { update };
+export type { UpdateConfig };

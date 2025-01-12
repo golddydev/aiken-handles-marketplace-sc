@@ -83,8 +83,9 @@ const buy = async (
   const {
     changeBech32Address,
     cborUtxos,
-    listingCborUtxo,
     collateralCborUtxo,
+    listingCborUtxo,
+    handleHex,
     customRefScriptDetail,
   } = config;
 
@@ -145,6 +146,14 @@ const buy = async (
   const changeAddress = makeAddress(changeBech32Address);
   const spareUtxos = cborUtxos.map(decodeTxInput);
   const listingUtxo = decodeTxInput(listingCborUtxo);
+  const handleValue = makeValue(
+    0n,
+    makeAssets([[HANDLE_POLICY_ID, [[handleHex, 1n]]]])
+  );
+
+  // check listing utxo has handle in it
+  if (!listingUtxo.value.isGreaterOrEqual(handleValue))
+    return Err(new Error("Listing UTxO doesn't have handle in it"));
 
   // <--- decode listing datum
   const listingDatum = listingUtxo.datum;
@@ -215,6 +224,11 @@ const buy = async (
   handleBuyOutput.correctLovelace(networkParameters);
   txBuilder.addOutput(handleBuyOutput);
 
+  // <--- add change address as signer
+  if (changeAddress.spendingCredential.kind != "PubKeyHash")
+    return Err(new Error("Must be Base Address to perform buy"));
+  txBuilder.addSigners(changeAddress.spendingCredential);
+
   // <--- add collateral if passed
   if (collateralCborUtxo) {
     const collateralUtxo = decodeTxInput(collateralCborUtxo);
@@ -245,9 +259,10 @@ const buyWithAuth = async (
   const {
     changeBech32Address,
     cborUtxos,
-    listingCborUtxo,
-    authorizerPubKeyHash,
     collateralCborUtxo,
+    listingCborUtxo,
+    handleHex,
+    authorizerPubKeyHash,
     customRefScriptDetail,
   } = config;
 
@@ -316,6 +331,14 @@ const buyWithAuth = async (
   const changeAddress = makeAddress(changeBech32Address);
   const spareUtxos = cborUtxos.map(decodeTxInput);
   const listingUtxo = decodeTxInput(listingCborUtxo);
+  const handleValue = makeValue(
+    0n,
+    makeAssets([[HANDLE_POLICY_ID, [[handleHex, 1n]]]])
+  );
+
+  // check listing utxo has handle in it
+  if (!listingUtxo.value.isGreaterOrEqual(handleValue))
+    return Err(new Error("Listing UTxO doesn't have handle in it"));
 
   // <--- decode listing datum
   const listingDatum = listingUtxo.datum;
@@ -373,6 +396,11 @@ const buyWithAuth = async (
   );
   handleBuyOutput.correctLovelace(networkParameters);
   txBuilder.addOutput(handleBuyOutput);
+
+  // <--- add change address as signer
+  if (changeAddress.spendingCredential.kind != "PubKeyHash")
+    return Err(new Error("Must be Base Address to perform buy"));
+  txBuilder.addSigners(changeAddress.spendingCredential);
 
   // <--- add authorizer as signer
   txBuilder.addSigners(makePubKeyHash(authorizerPubKeyHash));
