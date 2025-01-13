@@ -20,11 +20,14 @@ import {
   decodeDatum,
   decodeSCParametersDatum,
 } from "./datum.js";
-import { deployedScripts } from "./deployed/index.js";
-import { mayFail, mayFailTransaction } from "./helpers/index.js";
+import { mayFail, mayFailAsync, mayFailTransaction } from "./helpers/index.js";
 import { Buy } from "./redeemer.js";
 import { BuildTxError, SuccessResult } from "./types.js";
-import { bigIntMax, fetchNetworkParameters } from "./utils/index.js";
+import {
+  bigIntMax,
+  fetchDeployedScript,
+  fetchNetworkParameters,
+} from "./utils/index.js";
 
 /**
  * Configuration of function to buy handle
@@ -88,14 +91,15 @@ const buy = async (
     handleHex,
     customRefScriptDetail,
   } = config;
+  const refScriptDetailResult = await mayFailAsync(async () =>
+    customRefScriptDetail
+      ? customRefScriptDetail
+      : await fetchDeployedScript(network)
+  ).complete();
+  if (!refScriptDetailResult.ok)
+    return Err(new Error("Failed to fetch ref script"));
+  const refScriptDetail = refScriptDetailResult.data;
 
-  // TODO:
-  // fetch deployed script from api.handle.me
-
-  // use deployed script if fetch is failed
-  const refScriptDetail = customRefScriptDetail
-    ? customRefScriptDetail
-    : Object.values(deployedScripts[network])[0];
   const { cbor, unoptimizedCbor, datumCbor, refScriptUtxo, refScriptAddress } =
     refScriptDetail;
   if (!cbor) return Err(new Error("Deploy script cbor is empty"));
@@ -265,14 +269,15 @@ const buyWithAuth = async (
     authorizerPubKeyHash,
     customRefScriptDetail,
   } = config;
+  const refScriptDetailResult = await mayFailAsync(async () =>
+    customRefScriptDetail
+      ? customRefScriptDetail
+      : await fetchDeployedScript(network)
+  ).complete();
+  if (!refScriptDetailResult.ok)
+    return Err(new Error("Failed to fetch ref script"));
+  const refScriptDetail = refScriptDetailResult.data;
 
-  // TODO:
-  // fetch deployed script from api.handle.me
-
-  // use deployed script if fetch is failed
-  const refScriptDetail = customRefScriptDetail
-    ? customRefScriptDetail
-    : Object.values(deployedScripts[network])[0];
   const { cbor, unoptimizedCbor, datumCbor, refScriptUtxo, refScriptAddress } =
     refScriptDetail;
   if (!cbor) return Err(new Error("Deploy script cbor is empty"));

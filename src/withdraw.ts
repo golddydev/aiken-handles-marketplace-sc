@@ -15,10 +15,10 @@ import { Err, Result } from "ts-res";
 
 import { HANDLE_POLICY_ID } from "./constants/index.js";
 import { decodeDatum } from "./datum.js";
-import { deployedScripts } from "./deployed/index.js";
-import { mayFail, mayFailTransaction } from "./helpers/index.js";
+import { mayFail, mayFailAsync, mayFailTransaction } from "./helpers/index.js";
 import { WithdrawOrUpdate } from "./redeemer.js";
 import { BuildTxError, SuccessResult } from "./types.js";
+import { fetchDeployedScript } from "./utils/contract.js";
 
 /**
  * Configuration of function to withdraw handle
@@ -60,14 +60,15 @@ const withdraw = async (
     handleHex,
     customRefScriptDetail,
   } = config;
+  const refScriptDetailResult = await mayFailAsync(async () =>
+    customRefScriptDetail
+      ? customRefScriptDetail
+      : await fetchDeployedScript(network)
+  ).complete();
+  if (!refScriptDetailResult.ok)
+    return Err(new Error("Failed to fetch ref script"));
+  const refScriptDetail = refScriptDetailResult.data;
 
-  // TODO:
-  // fetch deployed script from api.handle.me
-
-  // use deployed script if fetch is failed
-  const refScriptDetail = customRefScriptDetail
-    ? customRefScriptDetail
-    : Object.values(deployedScripts[network])[0];
   const { cbor, unoptimizedCbor, datumCbor, refScriptUtxo, refScriptAddress } =
     refScriptDetail;
   if (!cbor) return Err(new Error("Deploy script cbor is empty"));

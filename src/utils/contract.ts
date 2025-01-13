@@ -1,10 +1,12 @@
 import { NetworkParams } from "@helios-lang/ledger";
 import { NetworkName } from "@helios-lang/tx-utils";
 import { decodeUplcProgramV2FromCbor, UplcProgramV2 } from "@helios-lang/uplc";
+import { ScriptDetails } from "@koralabs/kora-labs-common";
 import { makeSCParametersUplcValues } from "datum.js";
 import { Result } from "ts-res";
 
 import { optimizedCompiledCode } from "../contracts/plutus-v2/contract.js";
+import { deployedScripts } from "../deployed/index.js";
 import { mayFail, mayFailAsync } from "../helpers/index.js";
 import { Parameters } from "../types.js";
 
@@ -22,10 +24,6 @@ const fetchNetworkParameters = async (
   ).complete();
 };
 
-// TODO:
-// add arguments of
-// parameters: Parameters
-// version: "PlutusV2" | "PlutusV3"
 const getUplcProgram = async (
   parameters: Parameters
 ): Promise<Result<UplcProgramV2, string>> => {
@@ -37,4 +35,12 @@ const getUplcProgram = async (
   );
 };
 
-export { fetchNetworkParameters, getUplcProgram };
+// TODO:
+// make a PR of `deployedScript` to api.handle.me
+const fetchDeployedScript = async (
+  network: NetworkName
+): Promise<ScriptDetails> => {
+  return deployedScripts[network][0];
+};
+
+export { fetchDeployedScript, fetchNetworkParameters, getUplcProgram };

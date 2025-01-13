@@ -13,10 +13,9 @@ import { Err, Ok, Result } from "ts-res";
 
 import { HANDLE_POLICY_ID } from "./constants/index.js";
 import { buildDatum, decodeSCParametersDatum } from "./datum.js";
-import { deployedScripts } from "./deployed/index.js";
 import { mayFail, mayFailAsync } from "./helpers/index.js";
 import { Payout, SuccessResult } from "./types.js";
-import { fetchNetworkParameters } from "./utils/index.js";
+import { fetchDeployedScript, fetchNetworkParameters } from "./utils/index.js";
 
 /**
  * Configuration of function to list handle
@@ -54,14 +53,15 @@ const list = async (
     payouts,
     customRefScriptDetail,
   } = config;
+  const refScriptDetailResult = await mayFailAsync(async () =>
+    customRefScriptDetail
+      ? customRefScriptDetail
+      : await fetchDeployedScript(network)
+  ).complete();
+  if (!refScriptDetailResult.ok)
+    return Err(new Error("Failed to fetch ref script"));
+  const refScriptDetail = refScriptDetailResult.data;
 
-  // TODO:
-  // fetch deployed script from api.handle.me
-
-  // use deployed script if fetch is failed
-  const refScriptDetail = customRefScriptDetail
-    ? customRefScriptDetail
-    : Object.values(deployedScripts[network])[0];
   const { cbor, datumCbor, refScriptUtxo } = refScriptDetail;
   if (!cbor) return Err(new Error("Deploy script cbor is empty"));
   if (!datumCbor) return Err(new Error("Deploy script's datum cbor is empty"));
