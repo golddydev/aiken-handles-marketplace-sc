@@ -40,7 +40,7 @@ const getUplcProgram = async (
 const fetchDeployedScript = async (
   network: NetworkName
 ): Promise<ScriptDetails> => {
-  return deployedScripts[network][0];
+  return Object.values(deployedScripts[network])[0];
 };
 
 export { fetchDeployedScript, fetchNetworkParameters, getUplcProgram };

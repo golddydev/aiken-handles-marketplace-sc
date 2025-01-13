@@ -53,7 +53,12 @@ const buyCommand = program
 
       const txResult = await list(listConfig, config.network);
       if (!txResult.ok) console.log(txResult.error);
-      else console.log(txResult.data);
+      else {
+        console.log("Tx CBOR is: ");
+        console.log(bytesToHex(txResult.data.tx.toCbor()));
+        console.log("Tx Dump is: ");
+        console.log(txResult.data.dump);
+      }
     }
   );
 
