@@ -302,11 +302,13 @@ describe.sequential("Koralab Marketplace smart contract test", () => {
       invariant(buyTxResult.ok, "Buy Tx Failed");
 
       const { tx: buyTx } = buyTxResult.data;
-      buyTx.addSignatures(await user1Wallet.signTx(buyTx));
 
       // sign with authorizer private key
       const authorizerPrivateKey = authorizersPrivateKeys[0] as Bip32PrivateKey;
-      buyTx.addSignature(authorizerPrivateKey.sign(buyTx.body.hash()));
+      buyTx.addSignatures([
+        ...(await user1Wallet.signTx(buyTx)),
+        authorizerPrivateKey.sign(buyTx.body.hash()),
+      ]);
       const txId = await user1Wallet.submitTx(buyTx);
       emulator.tick(200);
 

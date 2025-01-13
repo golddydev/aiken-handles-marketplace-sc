@@ -91,7 +91,7 @@ program
 
       const buyWithAuthConfig: BuyWithAuthConfig = {
         changeBech32Address: bech32Address,
-        cborUtxos: utxos.map((utxo) => bytesToHex(utxo.toCbor())),
+        cborUtxos: utxos.map((utxo) => bytesToHex(utxo.toCbor(true))),
         handleHex: `${AssetNameLabel.LBL_222}${Buffer.from(
           handleName,
           "utf8"
